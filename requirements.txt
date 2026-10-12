@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-image
+scikit-learn
+matplotlib
+tigramite
+numba
