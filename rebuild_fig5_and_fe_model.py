@@ -1,5 +1,5 @@
 """
-Figure 5 (ensemble scatter and CMI-null panels) and the free-energy generative-model fit of main text S7.2.
+Figure 3 (ensemble flux-slice and CMI-null panels; written as ensemble_1024_rebuilt.png) and the free-energy generative-model fit of main text §5.2.
 
 Loads the 12 worker files ensemble_merged_seed1000_worker{0..11}.npz (the same files analyze_ensemble_merged.py merges), so
 run it from local_package.  Prints: N, the marginal and PC1 partial correlations; the eight parameters of the generative
@@ -63,7 +63,7 @@ def main():
     print(f"marginal r(I,E) = {r_marginal:.4f}")
     print(f"PC1 partial r   = {r_pc1:.4f}")
 
-    # --- generative model fit (main text \S7.2) ---
+    # --- generative model fit (main text \S5.2) ---
     mu_p, sigma_p2 = E.mean(), E.var()
     print(f"\nPrior p(s)=N(mu_p,sigma_p^2):  mu_p={mu_p:.4f}  sigma_p^2={sigma_p2:.3e}")
 
@@ -88,7 +88,7 @@ def main():
     print(f"Posterior q(s|I)=N(mu_q(I),sigma_q^2):  slope={coef_q[1]:.4f}  "
           f"intercept={coef_q[0]:.4f}  sigma_q^2={sigma_q2:.3e}")
 
-    # --- KL term distribution (for the \S7.2 "mean/minimum" sentence) ---
+    # --- KL term distribution (for the \S5.2 "mean/minimum" sentence) ---
     def kl(mu_q, sig_q2, mu_p_, sig_p2_):
         return np.log(np.sqrt(sig_p2_) / np.sqrt(sig_q2)) + (sig_q2 + (mu_q - mu_p_) ** 2) / (2 * sig_p2_) - 0.5
     mu_q_all = Bi @ coef_q

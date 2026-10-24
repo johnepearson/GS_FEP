@@ -1,29 +1,14 @@
 """
-Rebuilds the paper's \S7.4 instance-level check: every tracked
-organism-instance (confirmed divisions AND still-active lineages),
-pooled with no relative-time binning or averaging, correlating
-F_template against the Friston F directly -- using the REFIT Friston
-generative model from the merge-corrected primary ensemble
-(N=555,572), in place of the stale pre-merge-fix model this check was
-originally run with. (Reported in the paper as "r=0.783"; the existing
-script's own docstring/prints call it "r=0.777" -- this run settles
-which is current.)
+Instance-level check for the life-cycle comparison (main text §5.4; ESM §S_fe_comparison): every tracked
+organism-instance (confirmed divisions AND still-active lineages), pooled with no relative-time binning or averaging,
+correlating F_template against the Friston F directly, with a bootstrap interval. Also reports the correlation after
+controlling for age and for a size proxy (the radius at which the profile is lowest), and the correlation of age and size
+with each free energy.
 
-Based directly on compare_fe_instance_level.py (already in the
-codebase), with two differences:
-  1. Uses the hardcoded REFIT constants from rebuild_fig5_and_fe_model.py
-     instead of refitting live from --ensemble, since the only
-     ensemble_merged_final.npz files on hand are stale (pre-merge-fix,
-     wrong N) -- see rebuild_fig5_and_fe_model.py's own header for why.
-  2. Reuses the same tolerant-unpickling workaround as
-     rebuild_fe_comparison_1024.py for lifecycle_progress.pkl's
-     numpy-version-incompatible embedded RNG state.
+The Friston generative model is refit live from the Ensemble 1 worker files (fe_model.py).
 
-Requires (both already present, same as the Figure 13 rebuild):
-  - lifecycle_progress.pkl
-  - fe_template_1024.npz
-
-Run this from local_package/.
+Requires: lifecycle_progress.pkl, fe_template_1024.npz, ensemble_merged_seed1000_worker{0..11}.npz.
+Run from the directory holding these files.
 
 Usage:
     python3 rebuild_instance_level_check.py
@@ -84,17 +69,7 @@ import run_lifecycle
 from run_lifecycle import LifecycleTracker
 sys.modules["__main__"].LifecycleTracker = LifecycleTracker
 
-# --- refit generative model constants (rebuild_fig5_and_fe_model.py's
-# real output, merge-corrected primary ensemble, N=555,572) ---
-MU_P = 0.0387
-SIGMA_P2 = 1.611e-04
-A = np.array([2.369e-04, -7.994e-05])
-B = np.array([-8.080e-05, 2.718e-05])
-SIGMA = np.array([[3.392e-10, -1.098e-10], [-1.098e-10, 3.676e-11]])
-SLOPE = -0.0696
-INTERCEPT = 0.0586
-SIGMA_Q2 = 1.514e-04
-# OVERRIDE: the constants above are the stale spacing-32 fit; refit live (spacing 24) from the seed-1000 ensemble.
+# Generative-model constants (main text §5.2), refit live from the Ensemble 1 worker files (see fe_model.py).
 from fe_model import load_constants
 MU_P, SIGMA_P2, A, B, SIGMA, SLOPE, INTERCEPT, SIGMA_Q2 = load_constants()
 

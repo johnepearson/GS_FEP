@@ -1,39 +1,22 @@
 """
-Section 3.3.5 check: level-set individuation, with no watershed and no
-neighbor-dependent boundary construction at all.
+Level-set individuation check (main text §3.3.4; ESM §S2.2): organisms are found with no watershed and no
+neighbour-dependent boundary construction at all.
 
-Organisms are found as connected components of a FIXED threshold on v
-(0.1356, the empirical boundary plateau value for well-separated
-organisms established in Section~\\ref{sec:boundary_mechanism}), with no
-watershed step and no basin competition -- component extent is
-determined purely by where v crosses a single fixed value, so two
-organisms only get separate components if v actually dips below
-threshold between them. Components containing more than one local
-maximum of v (touching/merged organisms this simpler method cannot
-separate) or zero local maxima are excluded, exactly as described in
-the paper (about 11% of the population at any sampled instant).
+Organisms are the connected components of a FIXED threshold on v (0.1356, the empirical boundary plateau value for
+well-separated organisms), with no watershed step and no basin competition: component extent is determined purely by
+where v crosses a single fixed value, so two organisms only get separate components if v actually dips below the
+threshold between them. Components containing more than one local maximum of v (touching/merged organisms this
+simpler method cannot separate) or zero local maxima are excluded (about 11% of the population at any sampled
+instant).
 
-This is a full reconstruction, not the quick, small-N exploratory run
-the paper's headline number (N=3,141) apparently came from -- that
-script no longer exists (see run_boundary_fixed_radius.py's docstring
-for the same situation with the Section 3.6 check). This version:
-  - uses the SAME sampling cadence as the other single-trajectory
-    production checks (SAMPLE_EVERY_STEPS=10, run_remaining_checks.py)
-  - is run long enough to reach a sample size comparable to the other
-    single-trajectory headline checks (N=77,595 in Section 3.3.1;
-    N=104,473 in Section 3.5), not a quick one-off
-  - uses the verified crop-based interior/exterior computation
-    (organism_interior_exterior_states_fast, cross-checked exactly
-    against the paper's production function away from periodic edges;
-    see diagnose_residual.py) rather than the buggy whole-image
-    np.pad(mode="wrap") version
-  - additionally recovers per-organism states for the EXCLUDED
-    multi-maximum components via a secondary, LOCAL watershed split
-    (applied only within each multi-maximum component, using its own
-    local maxima as markers), so the referee's selection-effect
-    question -- whether discarding exactly the closest/touching pairs
-    biases the reported correlation -- can be checked directly by
-    comparing the single-peak-only result against the full
+Implementation:
+  - same sampling cadence as the other single-trajectory production checks (SAMPLE_EVERY_STEPS=10);
+  - crop-based interior/exterior computation (organism_interior_exterior_states_fast), exact against the
+    whole-image function away from periodic edges;
+  - per-organism states for the EXCLUDED multi-maximum components are also recovered by a secondary, LOCAL
+    watershed split (applied only within each multi-maximum component, using its own local maxima as markers), so
+    that the selection question -- whether discarding exactly the closest/touching pairs biases the reported
+    correlation -- can be checked directly by comparing the single-peak-only result against the full
     (single-peak + recovered multi-peak) result.
 
 Usage:
@@ -60,7 +43,7 @@ PAD = 80
 MIN_PEAK_DISTANCE = 32
 DEPTH_FRACTION = 0.5
 EXTERIOR_RING_PX = 24
-SAMPLE_EVERY_STEPS = 10  # matches run_remaining_checks.py / Section 3.5's cadence
+SAMPLE_EVERY_STEPS = 10  # same cadence as run_remaining_checks.py
 SAVE_EVERY_FRAMES = 20
 
 
@@ -261,7 +244,7 @@ def main():
           f"watershed): peaks recovered = {n_multi_excluded_peaks}")
 
     r_single, N_single_good = partial_corr(I_single, E_single, fu_single, fv_single)
-    print(f"\nSingle-peak-only (matches paper's Section 3.3.5 construction):")
+    print(f"\nSingle-peak-only (the main-text §3.3.4 construction):")
     print(f"  N={N_single_good}  partial r = {r_single:.4f}")
 
     if len(I_multi) > 0:

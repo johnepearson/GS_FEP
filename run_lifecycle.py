@@ -1,13 +1,11 @@
 """
-Combined lifecycle tracker at n=1024, replacing the separate n=256
-trackers (lineage/lifespan, crowding, template free energy, Friston
-free energy) with ONE pass that records everything each of those
-needs, so the (expensive) simulation is only stepped once.
+Combined lifecycle tracker at n=1024: ONE pass records everything the
+lineage/lifespan, crowding, template free-energy and Friston free-energy
+analyses need, so the (expensive) simulation is only stepped once.
 
-Reuses the same split-confirmation logic validated earlier (50-time-
-unit confirmation window; a split is confirmed real either by
-surviving the window or by one child dying independently, and treated
-as a false start if the children re-merge).
+Split confirmation: a 50-time-unit confirmation window; a split is
+confirmed real either by surviving the window or by one child dying
+independently, and treated as a false start if the children re-merge.
 
 Per confirmed organism, per sampled frame, records:
   - t (time)
@@ -27,7 +25,7 @@ Usage:
     python run_lifecycle.py --resume
 
 Progress saves periodically to lifecycle_progress.pkl (the name every downstream analysis script reads;
-move any older file with that name aside before starting a fresh run).
+move any existing file with that name aside before starting a fresh run).
 Marker spacing is MIN_PEAK_DISTANCE = 24 px, and organisms are the MERGED regions (overlapping watershed regions fused),
 so a 'division' is a merged organism that becomes two non-overlapping organisms.
 """
@@ -42,13 +40,7 @@ from gray_scott_spectral import PseudoSpectralGS
 from gray_scott import GrayScottSim, laplacian_periodic
 from run_confound_checks import organism_interior_exterior_states_fast
 import run_ensemble_merged as prod   # merge_overlapping_organisms, periodic_centroids
-# NOTE (2026-09-27): switched from organism_interior_exterior_states_distance
-# (gray_scott_distance_transform.py) to the crop-based fast version --
-# the old one has a wrap-duplication bug for organisms near a periodic
-# edge (~20-26% of organism-instances in testing), which affected every
-# I/E value this tracker recorded (used for the Friston free-energy
-# work and, now, the life-cycle-stratified confound check for referee
-# Comment #2).
+# I and E use the crop-based fast version (periodic edges handled by direct modulo indexing).
 
 try:
     from gray_scott_spectral_c import PseudoSpectralGSFast

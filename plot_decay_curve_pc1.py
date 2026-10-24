@@ -1,26 +1,15 @@
 """
-Recomputes main text Figure 7 (fig:decay_curve, \\S3.4, "Spatial Structure
-of the Residual Coupling") using the PC1 flux regressor instead of the
-joint two-variable (Phi_u,Phi_v) regression that plot_decay_curve_merged.py
-used, for consistency with the rest of the revision's PC1 convention
-(\\S3.3.1's footnote; check_joint_regression_stability.py showed the joint
-regression is unstable for the single-trajectory and both ensemble
-headline datasets, and ESM \\S2.2 already flagged it for the isolated
-gap-split subset).
+Draws main text Figure 4 (fig:decay_curve, §3.4, "Spatial Structure of the Conditional Coupling") with the PC1 flux
+regressor, the convention used throughout the paper (§3.3.1). The joint two-variable (Phi_u, Phi_v) regression is
+unstable for the single-trajectory and ensemble datasets (ESM §S3).
 
-No new simulation: reuses the already-collected
-decay_curve_merged_progress.npz (same file run_decay_curve_merged.py /
-plot_decay_curve_merged.py already used), just changes the regressor
-per shell.
+No new simulation: reads the shell-profile file given by --data (master_decay_curve.npz, written by master_to_legacy.py).
 
-For EACH shell, this also reports the joint-regression estimate and
-whether it falls inside the single-variable [Phi_u-alone, Phi_v-alone]
-range (the same stability check used everywhere else this revision), so
-we know whether the joint-vs-PC1 difference at any given shell is the
-collinearity artifact or just normal estimation noise.
+For EACH shell this also reports the joint-regression estimate and whether it falls inside the single-variable
+[Phi_u-alone, Phi_v-alone] range (the stability check used throughout), so that the joint-vs-PC1 difference at any
+shell can be told apart as a collinearity artefact or ordinary estimation noise.
 
-Produces decay_curve_1024.png (same filename as before -- overwrite in
-place) and prints a full shell-by-shell report.
+Produces decay_curve_1024.png and prints a full shell-by-shell report.
 
 Usage:
     python plot_decay_curve_pc1.py --data decay_curve_merged_progress.npz

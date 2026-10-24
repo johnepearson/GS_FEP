@@ -1,10 +1,10 @@
 """
 Rerun the analysis scripts in batches and write ONE log file per batch, so the printed numbers can be compared with the paper.
 
-  python3 run_batch.py 1            # fast analyses (under an hour)
+  python3 run_batch.py 1            # fast analyses (about an hour; plot_ensemble_summary.py alone takes about 10 minutes)
   python3 run_batch.py 2            # life-cycle and free-energy analyses (under an hour)
-  python3 run_batch.py 3            # heavy nonlinear-CMI jobs (1-2 hours; uses 12 cores)
-  python3 run_batch.py 4            # band-sweep seeds 1 and 2, placebo-disk sweep from scratch, Tigramite cross-check (about 1 hour)
+  python3 run_batch.py 3            # heavy nonlinear-CMI jobs, including the independent-frame CMI (1-2 hours or more; uses 12 cores)
+  python3 run_batch.py 4            # band-sweep seeds 1 and 2, placebo-disk sweep from scratch, Tigramite cross-check, then the band-sweep and u-enriched figures (about 1 hour)
   python3 run_batch.py 5            # full-population collider CMI (3 seeds), split-half check, depth sensitivity, merge rounds (about 45 minutes)
   python3 run_batch.py 1 --list     # show what would run, run nothing
   python3 run_batch.py 1 --only 7 8 # run only steps 7 and 8 of batch 1 (numbers as shown by --list); log is batch1_partial.txt
@@ -25,13 +25,15 @@ PY = "python3"
 # (command, files to MOVE aside first (caches), files to COPY first (outputs that get overwritten))
 B1 = [
     ("analyze_master.py", [], []),
+    ("marginal_screened_ensembles.py", [], []),
+    ("check_trajectory_stationarity.py", [], []),
+    ("radius_flux_share.py", [], []),
     ("diag_size_shape.py", [], []),
     ("diag_size_shape2.py", [], []),
     ("pc1_details.py", [], []),
     ("analyze_ensemble_pc1.py", [], []),
     ("analyze_ensemble_merged.py --n-workers 12 --seed-base 1000", [], []),
     ("analyze_ensemble_merged.py --n-workers 12 --seed-base 9000", [], []),
-    ("analyze_realization_distribution.py --n-workers 12", [], ["realization_distribution_result.npz"]),
     ("run_block_bootstrap_master.py", [], []),
     ("cluster_bootstrap_analysis.py master_trajectory_progress.npz --cluster-col frame_id --n-boot 2000", [], []),
     ("plot_screening_curve.py", [], []),
@@ -74,12 +76,15 @@ B3 = [
     ("run_random_disks.py --stride 3 --jobs 12", [], ["random_disks.npz"]),
     ("run_band_sweep_cmi.py --data random_disks.npz --tag _disks --only-all --jobs 12", [], []),
     ("run_levelset_cmi.py --jobs 12", [], ["levelset_cmi.npz"]),
+    ("run_cmi_independent_frames.py --data ensemble:1000 --jobs 12", [], []),
+    ("run_cmi_independent_frames.py --data master --jobs 12", [], []),
 ]
 B4 = [
     ("run_band_sweep_cmi.py --jobs 12 --seed 1", [], []),
     ("run_band_sweep_cmi.py --jobs 12 --seed 2", [], []),
     ("run_band_sweep_cmi.py --data random_disks.npz --tag _disks --only-all --jobs 12", ["run_band_sweep_cache_disks.pkl"], []),
     ("run_cmi_crosscheck.py", [], []),
+    ("plot_blanket_figures.py", [], ["band_sweep_cmi.png", "u_enriched_cmi.png"]),
 ]
 B5 = [
     ("analyze_pooled_collider_cmi.py --seeds 0 1 2 --data master_trajectory_progress.npz", [], []),

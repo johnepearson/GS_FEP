@@ -1,7 +1,6 @@
 """Radial v-profile template T(r) built from the MASTER trajectory's merged organisms (marker spacing 24).
 
-Replaces the old fe_template_1024.npz (built from raw watershed regions, which at spacing 24 include fragments) and
-the old ensemble_profiles_worker*.npz disjoint dataset (spacing 32, unmerged). Profiles are taken at the stored merged
+Profiles are taken at the stored merged
 centroids (master_trajectory_progress.npz cy/cx) from the archived v fields (master_fields/frame_XXXX.npz).
 The master trajectory is a separate simulation from run_lifecycle.py's, so a template built here is independent of the
 lifecycle trajectories it is evaluated on.

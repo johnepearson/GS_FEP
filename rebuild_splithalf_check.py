@@ -1,5 +1,5 @@
 """
-Held-out-half validation of the free-energy generative model (main text S7.2): fit on the whole merge-corrected primary
+Held-out-half validation of the free-energy generative model (main text §5.2): fit on the whole primary
 ensemble, fit again on a random half, and correlate the two free energies on the other half.  Merges the 12 per-worker files
 ensemble_merged_seed1000_worker{0..11}.npz and uses fit_prior, fit_likelihood, fit_posterior and compute_F from
 run_friston_fe_fit.py unchanged.

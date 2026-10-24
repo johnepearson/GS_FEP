@@ -1,6 +1,5 @@
 """
-Nonlinear (CMI) check on the level-set individuation (reviewer request): the main text previously reported only the
-linear partial correlation for the level-set method. This runs the paper's z-scored Frenzel-Pompe CMI with the local
+Nonlinear (CMI) check on the level-set individuation (main text §3.3.4): runs the paper's z-scored Frenzel-Pompe CMI with the local
 nearest-neighbour null on the level-set organisms saved by level_set_from_master.py (levelset_states.npz).
 
 Reports, for single-peak organisms, recovered multi-peak organisms, and the pooled set (N=8000 subsample each, or all
@@ -8,7 +7,7 @@ if fewer): MI(I;E), CMI(I;E | flux_u, flux_v), the local-null mean and SD (100 t
 If conditioning on flux RAISES the dependence above MI(I;E), the collider signature of the watershed analysis is present
 under the level-set method too.
 
-    python3 level_set_from_master.py     # once, to write levelset_states.npz (about as long as before)
+    python3 level_set_from_master.py     # once, to write levelset_states.npz (slow)
     python3 run_levelset_cmi.py --jobs 6
 """
 import argparse

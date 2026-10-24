@@ -1,5 +1,5 @@
 """Autocorrelation times (lag where the pooled, lineage-wise ACF first drops below 1/e) of I, E, Phi_u, Phi_v from the merged-organism
-lifecycle tracker (lifecycle_progress.pkl). Replaces the old values quoted in main text Sec. 3.1 (I ~60, E ~80, Phi_u/Phi_v ~60-65 time units).
+lifecycle tracker (lifecycle_progress.pkl). These are the autocorrelation times quoted in main text §3.1.
 
     python3 analyze_autocorr_lifecycle.py
 

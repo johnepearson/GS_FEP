@@ -2,8 +2,10 @@
 Two-panel summary of the independent-ensemble result (paper: Figure of the ensemble CMI test, ensemble_1024.png).
 
 Left : interior-exterior mutual information MI(I;E) inside each of 20 equal-count slices of the PC1 flux regressor
-       (3000 points per draw, mean of 8 draws, +-2 SE) against the same estimator on random 3000-point draws from the
-       whole population (grey band, dashed mean).  Shows that conditioning on flux RAISES the dependence.
+       (one estimate on ALL organisms of the slice) against the same estimator on random draws of the same size from
+       the whole population (grey band: mean +-2 SD of a single estimate; dashed line: mean).  Shows that conditioning
+       on flux RAISES the dependence.  With --subsample M the alternative design is used instead (mean of --draws random
+       M-point draws per slice, bars +-2 SE).
 Right: conditional MI I(I;E | Phi_u, Phi_v) on an N=8000 subsample (all variables z-scored, k_NN = 5) against a null
        built by local permutation among the 5 nearest neighbours in flux space (20 random swaps per point), 300 trials.
 
@@ -43,13 +45,15 @@ def main():
     ap.add_argument("--seed-base", type=int, default=1000)
     ap.add_argument("--n-cmi", type=int, default=8000)
     ap.add_argument("--n-null", type=int, default=300)
-    ap.add_argument("--draws", type=int, default=8)
+    ap.add_argument("--draws", type=int, default=8, help="only with --subsample")
+    ap.add_argument("--subsample", type=int, default=0, help="points per draw; 0 (default) = use every organism in a slice")
+    ap.add_argument("--pop-draws", type=int, default=20, help="random whole-population estimates that set the grey band")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="ensemble_1024.png")
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
     if a.quick:
-        a.n_cmi, a.n_null, a.draws = 2000, 20, 2
+        a.n_cmi, a.n_null, a.draws, a.pop_draws = 2000, 20, 2, 4
     files = sorted(glob.glob(f"ensemble_merged_seed{a.seed_base}_worker*.npz"))
     if not files:
         raise SystemExit(f"no files ensemble_merged_seed{a.seed_base}_worker*.npz in this folder")
@@ -66,22 +70,33 @@ def main():
     U, sv, _ = np.linalg.svd(S, full_matrices=False)
     pc1 = U[:, 0] * sv[0]
     zI, zE = z(I), z(E)
-    nsl, m3 = 20, 3000 if not a.quick else 500
+    nsl = 20
     edges = np.quantile(pc1, np.linspace(0, 1, nsl + 1))
     idx = np.clip(np.searchsorted(edges, pc1, side="right") - 1, 0, nsl - 1)
     cen, mi, se = [], [], []
+    full = a.subsample == 0
+    nmin = int(min(np.sum(idx == b) for b in range(nsl)))
+    m3 = nmin if full else a.subsample
+    if a.quick and full:
+        m3 = 2000
     for b in range(nsl):
         m = np.where(idx == b)[0]
         cen.append(np.median(pc1[m]))
-        est = [cmi_ksg(zI[p], zE[p], np.zeros((len(p), 1)), k=5)
-               for p in (rng.choice(m, size=min(m3, len(m)), replace=False) for _ in range(a.draws))]
-        mi.append(np.mean(est)); se.append(np.std(est, ddof=1) / np.sqrt(a.draws))
+        if full:
+            sel = m if not a.quick else rng.choice(m, size=m3, replace=False)
+            mi.append(cmi_ksg(zI[sel], zE[sel], np.zeros((len(sel), 1)), k=5)); se.append(0.0)
+            print(f"  slice {b + 1:2d}/{nsl}: n = {len(sel):,}  MI = {mi[-1]:.4f}", flush=True)
+        else:
+            est = [cmi_ksg(zI[p], zE[p], np.zeros((len(p), 1)), k=5)
+                   for p in (rng.choice(m, size=min(m3, len(m)), replace=False) for _ in range(a.draws))]
+            mi.append(np.mean(est)); se.append(np.std(est, ddof=1) / np.sqrt(a.draws))
     mi, se = np.array(mi), np.array(se)
     pop = np.array([cmi_ksg(zI[p], zE[p], np.zeros((m3, 1)), k=5)
-                    for p in (rng.choice(N, size=m3, replace=False) for _ in range(40 if not a.quick else 8))])
-    band = 2 * pop.std() / np.sqrt(a.draws)
-    print(f"MI(I;E) whole population at n={m3}: {pop.mean():.4f}; within flux slices: mean {mi.mean():.4f}, "
-          f"min {mi.min():.4f}, max {mi.max():.4f}; {(mi > pop.mean() + band).sum()} of {nsl} slices above the band")
+                    for p in (rng.choice(N, size=m3, replace=False) for _ in range(a.pop_draws))])
+    band = 2 * pop.std(ddof=1) if full else 2 * pop.std(ddof=1) / np.sqrt(a.draws)
+    print(f"MI(I;E) whole population at n={m3:,}: {pop.mean():.4f} (SD of a single estimate {pop.std(ddof=1):.4f}); "
+          f"within flux slices: mean {mi.mean():.4f}, min {mi.min():.4f}, max {mi.max():.4f}; "
+          f"{(mi > pop.mean() + band).sum()} of {nsl} slices above the band, {(mi < pop.mean() - band).sum()} below")
     peak = int(np.argmax(mi))
     print(f"peak slice: number {peak + 1} of {nsl} counting from the lowest flux, MI {mi[peak]:.4f} = {mi[peak] / pop.mean():.2f} times the whole-population value")
     print("slice-by-slice MI / whole population: " + " ".join(f"{x / pop.mean():.2f}" for x in mi))
@@ -107,16 +122,21 @@ def main():
     print(f"unconditioned MI(I;E) on the same subsample: {cmi_ksg(Is, Es, np.zeros((len(Is), 1)), k=5):.4f}")
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.6))
-    ax1.errorbar(cen, mi, yerr=2 * se, fmt="o-", color="#1f4e8c", capsize=2,
-                 label=f"within each flux slice (mean of {a.draws} draws, $\\pm$2 SE)")
-    ax1.axhspan(pop.mean() - band, pop.mean() + band, color="0.6", alpha=0.4,
-                label=f"whole population (mean of {a.draws} draws, $\\pm$2 SE)")
+    if full:
+        ax1.plot(cen, mi, "o-", color="#1f4e8c", label="within each flux slice (all organisms in the slice)")
+        ax1.axhspan(pop.mean() - band, pop.mean() + band, color="0.6", alpha=0.4,
+                    label=f"whole population (random draws of {m3:,}; mean $\\pm$2 SD)")
+    else:
+        ax1.errorbar(cen, mi, yerr=2 * se, fmt="o-", color="#1f4e8c", capsize=2,
+                     label=f"within each flux slice (mean of {a.draws} draws, $\\pm$2 SE)")
+        ax1.axhspan(pop.mean() - band, pop.mean() + band, color="0.6", alpha=0.4,
+                    label=f"whole population (mean of {a.draws} draws, $\\pm$2 SE)")
     ax1.axhline(pop.mean(), color="k", ls="--", lw=1)
     ax1.set_xlabel("flux regressor (PC1), slice median")
     ax1.set_ylabel("mutual information MI$(I;E)$ (nats)")
     ax1.set_title("Interior-exterior dependence within slices of fixed flux")
     ax1.legend(frameon=False, fontsize=9, loc="lower left")
-    ax2.hist(null, bins=30, color="steelblue", alpha=0.7, label="nearest-neighbor null")
+    ax2.hist(null, bins=30, color="steelblue", alpha=0.7, label="nearest-neighbour null")
     ax2.axvline(obs, color="crimson", lw=2, label=f"observed = {obs:.3f} nats")
     ax2.set_xlabel("conditional mutual information (nats)")
     ax2.set_title(f"{n_sd:.1f} null-standard-deviations above null mean")

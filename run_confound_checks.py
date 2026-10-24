@@ -1,5 +1,5 @@
 """
-Referee Comment #2 (cheap half): a single production data-collection
+A single production data-collection
 pass recording, for every organism-instance, everything needed to test
 three candidate confounds against the headline conditional-independence
 result -- without touching the original ensemble production code.
@@ -7,8 +7,8 @@ result -- without touching the original ensemble production code.
 For each sampled organism-instance, records:
   - I, E, flux_u, flux_v            (exactly as in Section 3.3, using
                                       the distance-transform interior/
-                                      exterior definition actually used
-                                      in the paper's pipeline)
+                                      exterior definition used
+                                      throughout the paper)
   - frame_id                         (for the frame-level global-
                                       confound / frame-fixed-effects
                                       check)
@@ -22,13 +22,10 @@ For each sampled organism-instance, records:
 Also records, once per frame: population count, frame-mean u, and the
 frame's Otsu(v) threshold -- for the frame-level confound check.
 
-NOT included here: real lineage-tracked age / time-to-division (the
-referee's stronger ask). That needs continuous frame-to-frame organism
-tracking (see run_lifecycle.py / run_shape_stability.py for the
-matching machinery) and is a separate, more expensive script -- this
-one is deliberately scoped to what a single independent-snapshot pass
-can answer, to check whether the effect survives these cheaper
-controls before committing to that.
+Lineage-tracked age and time-to-division are not recorded here: they need
+continuous frame-to-frame organism tracking (see run_lifecycle.py /
+run_shape_stability.py for the matching machinery). This script covers
+what a single independent-snapshot pass can answer.
 
 Usage:
     python run_confound_checks.py --n-frames 300
@@ -66,20 +63,9 @@ N_U_SHELLS = len(U_SHELL_RADII_PX) - 1
 # Crop half-widths for the local-window implementations below. Each must
 # exceed (measured max organism extent-from-centroid, ~49px) plus
 # whatever the ring/dilation step reaches beyond the organism's own
-# boundary. Verified empirically (diagnose_residual.py, 2026-09-26):
-# comparing this crop-based method against the ORIGINAL production
-# function (organism_interior_exterior_states_distance in
-# gray_scott_distance_transform.py) on non-edge-affected organisms gives
-# EXACT agreement (0.00000 max abs diff) once the crop covers the
-# organism + ring with margin to spare. NOTE: the original function has
-# an independent, previously-unknown bug for organisms within ~70-85px
-# of a periodic domain edge (its np.pad(..., mode="wrap") duplicates
-# such an organism's own pixels into the wrap margin, inflating its
-# computed area/radius/threshold -- confirmed via a corner-case organism
-# whose padded-array area was ~4x its true area). The crop-based
-# functions below use direct periodic (modulo) indexing instead, so they
-# do NOT have that bug and are used uniformly for ALL organisms here,
-# not just non-edge ones.
+# boundary. The crop-based functions below use direct periodic (modulo)
+# indexing, so organisms near a periodic domain edge are handled
+# correctly, and they are used uniformly for ALL organisms here.
 CROP_IE = 90       # interior/exterior: organism extent (~49) + ring (24) + margin
 CROP_USHELL = 140  # u-shells: organism extent (~49) + max shell radius (64) + margin
 
@@ -96,14 +82,12 @@ def organism_interior_exterior_states_fast(sim, labels, n_organisms, centroids,
                                             depth_fraction=DEPTH_FRACTION,
                                             exterior_ring_px=EXTERIOR_RING_PX,
                                             crop=CROP_IE):
-    """Crop-based (periodic-correct) replacement for
+    """Crop-based (periodic-correct) version of
     organism_interior_exterior_states_distance: same depth-fraction/
     exterior-ring definition, but each organism's distance transform and
     dilation run on a small local window (2*crop x 2*crop) built with
-    direct modulo indexing, instead of a whole-image np.pad(mode="wrap")
-    -- avoiding the wrap-duplication bug in the original function and
-    running orders of magnitude faster. See diagnose_residual.py for the
-    exactness check against the original."""
+    direct modulo indexing, instead of a whole-image np.pad(mode="wrap");
+    this runs orders of magnitude faster."""
     n = sim.n
     structure = ndimage.generate_binary_structure(2, 2)
     I = np.full(n_organisms, np.nan)

@@ -1,33 +1,18 @@
 """
-Rebuilds the paper's \S7.4 circularity check using the ACTUAL disjoint
-dataset from the original run -- ensemble_profiles_worker{0,1,2,3}.npz
-(609,859 organism-instances total, matching ESM \S~S9's
-sec:S_fe_heldout exactly), not a reconstruction. These four files'
-timestamps (Sep 21-22) predate both lifecycle_progress.pkl and
-fe_template_1024.npz (Sep 30) and fall before the Sep 27 cutoff the
-README already flags for lost code -- consistent with this being
-surviving DATA from the original circularity check, even though the
-analysis script that consumed it didn't survive (same situation as
-fe_template_1024.npz's own original build code).
+Template-circularity check for the life-cycle comparison (main text §5.4; ESM §S_fe_comparison): does the agreement
+between the template-deviation free energy and the Friston free energy survive when the template is built from a
+separate trajectory?
 
-Matches ESM's stated original procedure:
-  - Build an independent T(r) from this disjoint dataset's profiles,
-    unconditioned on division status (same convention as
-    build_fe_template.py).
-  - Evaluate F_template against it using only the PRE-division portion
-    of each confirmed-division trajectory in lifecycle_progress.pkl
-    (ESM: "the full pre-and-post-division curve... requires additional
-    reconstruction we did not repeat here").
-  - Bin by relative time (a few widths, since the paper reports a
-    range depending on bin width) and correlate the z-scored,
-    matched-bin means against the Friston F (refit generative model,
-    same as the other \S7 rebuilds).
+  - Build an independent radial template T(r) from the MASTER trajectory's merged organisms (master_profiles.npz, from
+    build_template_from_master.py), unconditioned on division status. The master run is a separate simulation from the
+    lifecycle run, so the template is disjoint from the data it is evaluated on.
+  - Evaluate F_template against it using only the PRE-division portion of each confirmed-division trajectory in
+    lifecycle_progress.pkl.
+  - Bin by relative time (several bin widths) and correlate the z-scored, matched-bin means against the Friston F
+    (generative model refit live from the Ensemble 1 worker files, fe_model.py).
 
-Requires:
-  - ensemble_profiles_worker0.npz .. worker3.npz (the disjoint dataset)
-  - lifecycle_progress.pkl (evaluation data, pre-division portion only)
-
-Run this from local_package/.
+Requires: master_profiles.npz, lifecycle_progress.pkl, and ensemble_merged_seed1000_worker{0..11}.npz (via fe_model.py).
+Run from the directory holding these files.
 
 Usage:
     python3 rebuild_circularity_check_v2.py
@@ -85,17 +70,7 @@ import run_lifecycle
 from run_lifecycle import LifecycleTracker
 sys.modules["__main__"].LifecycleTracker = LifecycleTracker
 
-# --- refit generative model constants (same as the other \S7 rebuilds,
-# merge-corrected primary ensemble, N=555,572) ---
-MU_P = 0.0387
-SIGMA_P2 = 1.611e-04
-A = np.array([2.369e-04, -7.994e-05])
-B = np.array([-8.080e-05, 2.718e-05])
-SIGMA = np.array([[3.392e-10, -1.098e-10], [-1.098e-10, 3.676e-11]])
-SLOPE = -0.0696
-INTERCEPT = 0.0586
-SIGMA_Q2 = 1.514e-04
-# OVERRIDE: the constants above are the stale spacing-32 fit; refit live (spacing 24) from the seed-1000 ensemble.
+# Generative-model constants (main text §5.2), refit live from the Ensemble 1 worker files (see fe_model.py).
 from fe_model import load_constants
 MU_P, SIGMA_P2, A, B, SIGMA, SLOPE, INTERCEPT, SIGMA_Q2 = load_constants()
 

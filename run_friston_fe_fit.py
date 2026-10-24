@@ -1,34 +1,27 @@
 """
-Fits the Friston free-energy generative model (paper Section 7.2,
-sec:friston_fe) directly from an ensemble dataset (I, E, fu, fv), and
-computes the closed-form KL and accuracy terms.
-
-This was never built in this package -- README flagged it as "a
-separate small script once the ensemble is done." Implements exactly
-the methodology in paper.tex Eq. fe_definition / the itemized
-generative-model list in sec:friston_fe:
+Fits the Friston free-energy generative model (main text Section 5.2) from an independent-ensemble dataset
+(I, E, fu, fv) and computes the closed-form KL and accuracy terms.
 
   Hidden state s := E
   Observation  o := (Phi_u, Phi_v)
-  Prior        p(s) = N(mu_p, sigma_p^2), fit to the marginal
-               distribution of E across the ensemble population
-  Likelihood   p(o|s) = N(A*s + b, Sigma), fit by linear regression of
-               (fu, fv) on E
-  Posterior    q(s|I) = N(mu_q(I), sigma_q^2), with mu_q(I) a linear
-               regression of E on I, sigma_q^2 the residual variance
+  Prior        p(s) = N(mu_p, sigma_p^2), fit to the marginal distribution of E across the ensemble population
+  Likelihood   p(o|s) = N(A*s + b, Sigma), fit by linear regression of (fu, fv) on E
+  Posterior    q(s|I) = N(mu_q(I), sigma_q^2), with mu_q(I) a linear regression of E on I and sigma_q^2 the
+               residual variance
 
-KL(q||p) and the expected negative log-likelihood are both available
-in closed form for Gaussians (paper's Eqs. for these two terms).
+KL(q||p) and the expected negative log-likelihood are both available in closed form for Gaussians.
 
-Also reproduces the paper's held-out-half validation (fit all three
-ingredients on a random half of the ensemble, evaluate F on the other
-half using both the held-out-fit and full-dataset-fit parameters,
-correlate).
+It also runs the held-out-half validation: fit all three ingredients on a random half of the ensemble, evaluate F on the
+other half with both the held-out-fit and the full-dataset-fit parameters, and correlate the two.
 
-Usage:
-    python3.12 run_friston_fe_fit.py --data ensemble_merged_final.npz
+fit_prior, fit_likelihood, fit_posterior and compute_F are also imported by rebuild_splithalf_check.py.
+
+Usage (from the folder holding ensemble_merged_seed<BASE>_worker*.npz):
+    python3 run_friston_fe_fit.py                      # seed base 1000
+    python3 run_friston_fe_fit.py --seed-base 9000
 """
 import argparse
+import glob
 import numpy as np
 
 
@@ -89,12 +82,16 @@ def compute_F(I, E, fu, fv, A, b, Sigma, slope, intercept, sigma_q2, mu_p, sigma
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="ensemble_merged_final.npz")
-    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--seed-base", type=int, default=1000, help="reads ensemble_merged_seed<BASE>_worker*.npz")
+    ap.add_argument("--seed", type=int, default=0, help="random seed for the held-out split")
     args = ap.parse_args()
 
-    d = np.load(args.data)
-    I_all, E_all, fu_all, fv_all = d["I"], d["E"], d["fu"], d["fv"]
+    files = sorted(glob.glob(f"ensemble_merged_seed{args.seed_base}_worker*.npz"))
+    if not files:
+        raise SystemExit(f"no files match ensemble_merged_seed{args.seed_base}_worker*.npz")
+    ds = [np.load(f) for f in files]
+    I_all, E_all, fu_all, fv_all = (np.concatenate([d[k] for d in ds]) for k in ("I", "E", "fu", "fv"))
+    print(f"{len(files)} files")
     good = np.isfinite(I_all) & np.isfinite(E_all) & np.isfinite(fu_all) & np.isfinite(fv_all)
     I, E, fu, fv = I_all[good], E_all[good], fu_all[good], fv_all[good]
     N = len(I)
@@ -109,7 +106,7 @@ def main():
     print(f"  likelihood: A=({A[0]:.4e}, {A[1]:.4e})  b=({b[0]:.4e}, {b[1]:.4e})")
     print(f"              Sigma=\n{Sigma}")
     print(f"  posterior:  slope={slope:.4f}  intercept={intercept:.4f}  sigma_q^2={sigma_q2:.4e}")
-    print(f"              (matches marginal corr(I,E) = {r_marg:.4f}, Section conditional_independence)")
+    print(f"              (marginal corr(I,E) = {r_marg:.4f})")
 
     F, KL, acc = compute_F(I, E, fu, fv, A, b, Sigma, slope, intercept, sigma_q2, mu_p, sigma_p2)
     print(f"\nKL term (interior-informed divergence from population prior):")
@@ -140,7 +137,7 @@ def main():
     F_held, _, _ = compute_F(I[idx_eval], E[idx_eval], fu[idx_eval], fv[idx_eval], *heldout_params[2:5],
                               *heldout_params[5:8], heldout_params[0], heldout_params[1])
     r_check = np.corrcoef(F_full, F_held)[0, 1]
-    print(f"\nHeld-out-half validation (paper: r=0.999998):")
+    print(f"\nHeld-out-half validation:")
     print(f"  full-dataset-fit F vs. held-out-half-fit F on the other half: r={r_check:.6f}")
 
 

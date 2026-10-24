@@ -3,13 +3,12 @@ Shared utility for computing the I-E partial correlation, controlling
 for blanket flux (Phi_u, Phi_v), in a way that is robust to the
 near-total collinearity between those two variables.
 
-BACKGROUND (found 2026-09-27, while checking referee Comment #3):
+BACKGROUND:
 Phi_u and Phi_v are highly collinear in every dataset in this project
 (r ~ -0.98 to -0.99, reflecting the reaction's stoichiometry -- v is
 produced roughly in proportion to u consumed). The paper's headline
 partial correlations condition on both jointly via ordinary least
-squares. NOTE (updated 2026-10-09, pc1_details.py): on the current
-merged-individuation datasets (single trajectory and both 1000-realization
+squares. NOTE (pc1_details.py): on the merged-individuation datasets (single trajectory and both 1000-realization
 ensembles) the joint result is NOT within the range spanned by Phi_u alone
 and Phi_v alone (joint about -0.29 to -0.30; singles -0.18 to -0.21; PC1
 -0.19 to -0.20), even though the standardized design matrix is well

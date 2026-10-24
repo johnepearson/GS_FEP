@@ -1,8 +1,8 @@
 """
-Referee Comment #2, life-cycle piece: does organism AGE confound the
-I-E partial-correlation-given-flux result? Uses lifecycle_progress.pkl
+Does organism AGE confound the I-E partial-correlation-given-flux result
+(main text §3.3.3)? Uses lifecycle_progress.pkl
 (run_lifecycle.py --n-steps 2000 --fast), which records I, E, fu, fv
-(via the bug-fixed organism_interior_exterior_states_fast) for every
+(via organism_interior_exterior_states_fast) for every
 confirmed organism lineage, every SAMPLE_EVERY=5 time units, with I/E
 computed every 4th sampled frame (IE_EVERY_N_FRAMES=4).
 

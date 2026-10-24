@@ -5,6 +5,7 @@ Run from the folder that holds the scripts and the data they read.  Data files c
 
 | Figure file | Script and command | Reads |
 |---|---|---|
+| v_movie.mp4 (optional movie of the v field) | `python3 make_v_movie.py --start-field master_fields/frame_0200.npz --every 5 --crop 128 --scale 8 --n-frames 1200 --out v_movie_1200.mp4` | `master_fields/frame_0200.npz` |
 | spots_snapshot.png | `python3 plot_snapshot.py` | `master_fields/` (or `master_trajectory_progress.npz`) |
 | schematic_combined.png | none kept: field snapshot with the interior, boundary, exterior-ring and far-exterior outlines overlaid, plus a hand-drawn schematic | |
 | ensemble_1024.png | `python3 plot_ensemble_summary.py` | `ensemble_merged_seed1000_worker*.npz` |
@@ -19,6 +20,15 @@ Run from the folder that holds the scripts and the data they read.  Data files c
 | merge_before.png, merge_after.png | `make_merge_figure.py` | |
 | lifespan_1024.png | `plot_lifespan.py` | `lifecycle_progress.pkl` |
 | memory_comparison_1024.png | `analyze_3var_shells.py` | `shell_data_3var_*.npz` (`run_3var_shell_data.py`) |
+
+Numbers quoted in the text that come from small scripts rather than figures:
+
+| Number | Script | Reads |
+|---|---|---|
+| marginal r, partial r and screened fraction for each ensemble (Table 1) | `python3 marginal_screened_ensembles.py` | `ensemble_merged_seed{1000,9000,20000}_worker*.npz` |
+| single trajectory: population and partial r in thirds of the run (stationarity) | `python3 check_trajectory_stationarity.py` | `master_trajectory_progress.npz` |
+| radius shares about 70% of its variance with the flux PC1 | `python3 radius_flux_share.py` | `master_trajectory_progress.npz` |
+| CMI on one organism per frame, per realisation, or thinned subsamples | `python3 run_cmi_independent_frames.py --data ensemble:1000 --jobs 12` (and `--data master`) | ensemble or master data |
 
 A regenerated figure can differ in detail from the published one (a different frame, a different random subsample);
 compare the printed numbers with the text.

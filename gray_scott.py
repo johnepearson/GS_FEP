@@ -329,8 +329,12 @@ class GrayScottSim:
         coords = peak_local_max(vp, min_distance=min_peak_distance,
                                  labels=mask.astype(int))
         markers = np.zeros(vp.shape, dtype=int)
-        for i, (r, c) in enumerate(coords, start=1):
-            markers[r, c] = i
+        # Periodic-safe marker identities: every periodic copy of a peak gets the
+        # same marker ID, keyed on its position modulo n, so one physical spot cannot become two regions.
+        ids = {}
+        for (r, c) in coords:
+            key = ((int(r) - pad) % n, (int(c) - pad) % n)
+            markers[r, c] = ids.setdefault(key, len(ids) + 1)
 
         labeled = watershed(-vp, markers=markers, mask=mask)
         labeled = labeled[pad:pad + n, pad:pad + n]

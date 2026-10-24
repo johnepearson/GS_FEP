@@ -58,9 +58,8 @@ def _residualize(y, B):
 
 
 def naive_partial_corr(I, E, fu, fv):
-    """Pooled partial correlation, ignoring lineage structure entirely
-    -- reproduces the paper's existing headline number on this dataset
-    (r=-0.196) as a sanity check before doing anything new."""
+    """Pooled partial correlation (PC1 flux regressor), ignoring lineage structure entirely: the baseline
+    against which the lineage-aware estimates are compared."""
     p1 = pc1_flux(fu, fv)
     n = len(I)
     B = np.column_stack([np.ones(n), p1])

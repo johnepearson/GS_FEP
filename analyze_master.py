@@ -14,8 +14,8 @@ Reports (all on the merged, min_distance=24 segmentation):
   6. Boundary mechanism: corr(boundary_v, edge_gap) and boundary_v for clean and crowded organisms.
   7. Dropout diagnostic: visible spots left unlabelled per frame.
 
-For the existing scripts that read the older file formats (Table 2 replacement, decay curve, NN-null CMI),
-run master_to_legacy.py to write files they can read.
+Scripts that read the legacy file format (the CMI table, decay curve, NN-null CMI) can be fed with master_to_legacy.py,
+which writes files in that format.
 """
 import argparse
 import numpy as np

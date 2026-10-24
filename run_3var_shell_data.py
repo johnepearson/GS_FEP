@@ -1,7 +1,7 @@
 """
 Correlation-length data collection for the three-variable chemical-memory
 Gray-Scott model, at n=1024 with the pseudo-spectral solver -- the proper,
-full-scale version of the quick Dw=0 vs Dw=Dv comparison done earlier.
+full-scale version of the Dw=0 vs Dw=Dv comparison of ESM §S13.
 
 Set GS_FFT_WORKERS to your CPU count for a large speedup, e.g.:
     GS_FFT_WORKERS=8 python3 run_3var_shell_data.py --dw 0.0 --target-n 100000
@@ -21,12 +21,8 @@ from gray_scott import GrayScottSim, laplacian_periodic
 from run_confound_checks import (organism_interior_exterior_states_fast,
                                   organism_shell_profile_field_fast)
 import run_ensemble_merged as prod   # merge_overlapping_organisms, periodic_centroids
-# NOTE (2026-09-27): switched from organism_interior_exterior_states_adaptive
-# and organism_shell_profile (gray_scott.py) -- both whole-image
-# np.pad(mode="wrap")-per-organism functions with a wrap-duplication bug
-# for organisms near a periodic edge (~20-26% of organism-instances in
-# testing) -- to the crop-based, modulo-indexed fast versions, matching
-# every other production script in this package.
+# Uses the crop-based, modulo-indexed fast functions (periodic edges handled
+# by direct indexing), matching every other production script in this package.
 
 GS_CHECKPOINT = "checkpoint_1024_settled.npz"  # existing 2-variable n=1024 checkpoint
 EPS = 0.25

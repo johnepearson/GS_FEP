@@ -1,22 +1,14 @@
 """
-Recomputes ESM Figure S1 (fig:S_depth_sensitivity, main text \\S2.2's
-depth-fraction robustness check, the r(d) curve over core depth-fractions
-d in {0.5, 0.6, 0.7, 0.8, 0.9}) using the PC1 flux regressor instead of
-the joint two-variable (Phi_u,Phi_v) regression that
-plot_depth_sensitivity_merged.py used, for consistency with the rest of
-this revision's PC1 convention (main text \\S3.3.1 footnote).
+Draws ESM Figure S1 (fig:S_depth_sensitivity), the depth-fraction robustness check of the interior definition (main
+text §2.1): the r(d) curve over core depth-fractions d in {0.5, 0.6, 0.7, 0.8, 0.9}, using the PC1 flux regressor
+(main text §3.3.1).
 
-No new simulation: reuses the already-collected sweep_merged_progress.npz
-(same file run_sweep_merged.py / plot_depth_sensitivity_merged.py already
-used), just changes the regressor at each depth-fraction.
+No new simulation: reads sweep_merged_progress.npz (written by sweep_from_master.py).
 
-Also reports, at each depth-fraction, the joint-regression estimate and
-whether it passes the paper's stability check (falls within
-[min(r_Phi_u-alone, r_Phi_v-alone), max(...)]), so we know whether this
-curve was affected by the same collinearity problem found elsewhere.
+Also reports, at each depth-fraction, the joint-regression estimate and whether it passes the stability check (falls
+within [min(r_Phi_u-alone, r_Phi_v-alone), max(...)]).
 
-Produces depth_sensitivity.png (same filename, overwrite in place) and a
-full per-fraction report.
+Produces depth_sensitivity.png and a full per-fraction report.
 
 Usage:
     python plot_depth_sensitivity_pc1.py --data sweep_merged_progress.npz

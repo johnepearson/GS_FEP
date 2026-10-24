@@ -1,39 +1,21 @@
 """
-Merge-aware redo of run_ensemble_clustered.py -- the script behind
-sec:conditional_independence's 3.3.2 ("Linear partial correlation,
-independent ensemble") headline numbers (pooled r=-0.151/-0.153 on
-~560-610k organism-instances from 1000 independent noise-perturbed
-realizations, plus the per-realization distribution and realization-
-cluster bootstrap in Figure realization_distribution).
+Independent-ensemble production run (main text §3.3.1, Table 1): realisations branched from the settled checkpoint,
+each perturbed once by Gaussian noise (sigma = 1e-3, its own seed), evolved for a burn-in with no further noise
+(--burn-in-steps, default 3000), then sampled three times (--sample-spacing-steps apart, default 100).
 
-Same experimental design as run_ensemble_clustered.py, same seed range
-(9000+i) for direct trajectory-level comparability -- the underlying
-u/v dynamics are deterministic and unaffected by the merge fix, so
-reusing these seeds means any difference between this dataset and the
-original is attributable ONLY to the "spots don't overlap" merge-based
-segmentation, not to a different random draw of realizations.
+Each sample is segmented with the merge-based individuation: organisms whose equivalent-radius circles overlap
+(negative edge-to-edge gap) are merged into one before flux, I and E are computed, via the same fixed-point
+union-find merge (merge_overlapping_organisms) and periodic-correct centroid (periodic_centroids) used in
+run_remaining_checks_merged.py. merge_size is also recorded per organism-instance (diagnostic only, not used in the
+partial correlation).
 
-The one substantive change: after segmenting each sample, organisms
-whose equivalent-radius circles overlap (negative edge-to-edge gap)
-are merged into one before flux/I/E are computed, via the same
-fixed-point union-find merge (merge_overlapping_organisms) and
-periodic-correct centroid (periodic_centroids) already validated in
-run_merged_gap_split.py and run_remaining_checks_merged.py. Also
-additionally records merge_size per organism-instance (diagnostic
-only, not used in the partial correlation).
-
-NOTE: this script now also covers the PRIMARY ensemble (seeds 1000+i,
-run_ensemble_parallel.py's dataset, N=559,147 pre-merge-fix -- sec
-3.3.2's FIRST paragraph, and the source dataset for sec 3.3.3's CMI
-N=8000 subsample), via --seed-base 1000, in addition to the second/
-robustness ensemble (seeds 9000+i, --seed-base 9000, the default --
-already run and reported separately). Same script, same merge fix,
-independent seed ranges -- just run it twice, once per seed base.
-Progress files are named ensemble_merged_seed{seed_base}_worker{id}.npz,
-so the two runs' outputs never collide and can proceed independently
-(or concurrently, resources permitting, though 24 processes at once on
-a 12-core machine is not recommended -- finish one seed base's 12
-workers before starting the other).
+The three ensembles of Table 1 are three runs of this script:
+    Ensemble 1: --seed-base 1000 --n-realizations 1000
+    Ensemble 2: --seed-base 9000 --n-realizations 1000   (the default seed base)
+    Ensemble 3: --seed-base 20000 --n-realizations 500 --burn-in-steps 5000 --sample-spacing-steps 1000
+Seeds are seed_base + realization index. Progress files are named ensemble_merged_seed{seed_base}_worker{id}.npz, so
+runs with different seed bases never collide (finish one seed base's 12 workers before starting another: 24 processes
+at once on a 12-core machine is not recommended).
 
 Usage (12 parallel worker processes -- matches the 12 FFTW threads this
 machine reported; GS_FFT_THREADS=1 per worker avoids threads-within-
@@ -47,13 +29,11 @@ processes contention, since each worker gets its own core this way):
     done
     wait
 
-(Omit --seed-base, or pass --seed-base 9000 explicitly, to rerun the
-already-completed second ensemble instead -- not needed again unless
-a worker's output was lost.)
+(Omit --seed-base, or pass --seed-base 9000, for Ensemble 2; use the
+commands in the header for Ensembles 1 and 3.)
 
-Resume an interrupted worker with --resume (per-worker, exactly as in
-run_ensemble_clustered.py -- each realization is independent, so
-resuming never redoes completed work). If a worker dies, just rerun
+Resume an interrupted worker with --resume (per-worker: each realization is
+independent, so resuming never redoes completed work). If a worker dies, just rerun
 its own command above with --resume added; the others are unaffected.
 
 Rough cost estimate (from the smoke test and run_remaining_checks_merged.py's
@@ -348,14 +328,8 @@ def main():
                           "at this scale (1000 realizations) -- see README.md's C "
                           "solver build instructions if libgs_spectral.so isn't built.")
     ap.add_argument("--seed-base", type=int, default=9000,
-                     help="Seed range base: seeds are {seed_base}+i. Default 9000 matches "
-                          "run_ensemble_clustered.py's second/robustness ensemble (sec "
-                          "3.3.2's realization-distribution and cluster-bootstrap check). "
-                          "Pass --seed-base 1000 instead to target the PRIMARY ensemble "
-                          "(run_ensemble_parallel.py's seeds, sec 3.3.2's first paragraph "
-                          "and the sec 3.3.3 CMI subsample's source dataset) -- same script, "
-                          "same merge fix, just a different, independent set of 1000 "
-                          "physical realizations, reanalyzed/regenerated the same way.")
+                     help="Seed range base: seeds are {seed_base}+i. Ensemble 1 is 1000, Ensemble 2 "
+                          "is 9000 (the default), Ensemble 3 is 20000 (main text Table 1).")
     ap.add_argument("--sample-spacing-steps", type=int, default=SAMPLE_SPACING_STEPS,
                      help="integration steps between the 3 samples of one realization (default 100; "
                           "use 1000 for the long-spacing rerun)")
@@ -377,12 +351,7 @@ def main():
 
     progress_file = f"ensemble_merged_seed{args.seed_base}_worker{args.worker_id}.npz"
 
-    # Seed range is {seed_base}+i. With the default seed_base=9000, this is the
-    # SAME 1000 physical realizations as run_ensemble_clustered.py (deliberately
-    # reused for direct trajectory-level comparability -- any difference from
-    # that dataset's numbers is then attributable only to the segmentation
-    # change). With --seed-base 1000, this instead targets the PRIMARY
-    # ensemble's seed range (run_ensemble_parallel.py), for the same reason.
+    # Seed range is {seed_base}+i (Ensembles 1, 2, 3: 1000, 9000, 20000).
     my_seeds = [args.seed_base + i for i in range(args.n_realizations) if i % args.n_workers == args.worker_id]
 
     if args.resume:

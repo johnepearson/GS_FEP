@@ -1,29 +1,15 @@
 """
-Merge-aware redo of run_remaining_checks.py's three checks, using the
-same "spots don't overlap" segmentation fix as run_merged_gap_split.py
-(periodic_centroids + merge_overlapping_organisms, copied in verbatim
-from that validated script):
+Three single-trajectory checks with the merge-based individuation (periodic_centroids + merge_overlapping_organisms,
+as in run_merged_gap_split.py):
 
-  1. Timescale separation (3.1): match MERGED organisms frame-to-frame
-     by maximum overlap; boundary displacement per intrinsic
-     relaxation time tau=1/(F+k), normalized by organism radius.
-  2. Flux asymmetry (3.2): sign of net diffusive flux (U inward,
-     V outward) per MERGED organism per frame.
-  3. Boundary mechanism (3.5/fig:crowding data): boundary V-value vs.
-     edge-to-edge gap to nearest neighbor -- still computed here for a
-     clean empirical check, but NOTE: under the merge fix, no two
-     distinct (unmerged) organisms can have a negative edge_gap by
-     construction, so this should now come back all-non-negative. If
-     so, that confirms fig:crowding's premise (a "sharp transition at
-     zero gap") no longer exists and the figure/sec:3.6 narrative needs
-     to be cut or reframed -- not fixed by rerunning, since there's
-     nothing on the negative side left to show.
+  1. Timescale separation (main text §3.1): match MERGED organisms frame-to-frame by maximum overlap; boundary
+     displacement per intrinsic relaxation time tau=1/(F+k), normalized by organism radius.
+  2. Flux asymmetry (main text §3.2): sign of net diffusive flux (U inward, V outward) per MERGED organism per frame.
+  3. Boundary mechanism: boundary V-value vs. edge-to-edge gap to the nearest neighbour. Under the merge, no two
+     distinct organisms can have a negative edge gap by construction, so every gap is non-negative.
 
-Same production methodology otherwise: checkpoint_1024_settled.npz,
-PAD=80, MIN_PEAK_DISTANCE=24, 10-step sampling cadence (matches the
-original run_remaining_checks.py, finer than the 100-step cadence used
-for the I/E extraction scripts since no expensive distance transform
-is needed here).
+Settings: checkpoint_1024_settled.npz, PAD=80, MIN_PEAK_DISTANCE=24, 10-step sampling cadence (finer than the 100-step
+cadence used for the I/E extraction scripts, since no expensive distance transform is needed here).
 
 Usage:
     python run_remaining_checks_merged.py --n-frames 500

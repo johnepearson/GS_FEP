@@ -1,5 +1,5 @@
 """
-Blanket-thickness sweep (reviewer request): is there a band of finite width w beyond the organism boundary
+Blanket-thickness sweep (main text §3.5): is there a band of finite width w beyond the organism boundary
 that screens the interior from the exterior just outside it?
 
 Specification fixed in advance (no search over conditioning variables):

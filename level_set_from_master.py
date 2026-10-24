@@ -1,6 +1,6 @@
 """Level-set (non-watershed) individuation check, run on the archived fields of the master trajectory (marker spacing 24).
 
-Replaces the old run_level_set_individuation.py result (separate simulation, marker spacing 32). No new simulation: for every
+Level-set individuation applied to the stored master trajectory. No new simulation: for every
 STRIDE-th archived frame (master_fields/frame_XXXX.npz) it finds fixed-threshold connected components of v (v > 0.1356), keeps
 the single-maximum components (peaks found with peak_local_max, min_distance=24), and also recovers the multi-maximum
 components with a local watershed so the selection effect can be checked. Reports the PC1-flux partial correlation (the paper's

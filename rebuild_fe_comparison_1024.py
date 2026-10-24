@@ -1,31 +1,13 @@
 """
-Rebuilds Figure 13 (fig:fe_comparison, the 1024x1024 panel, N=666
-confirmed divisions) using the REFIT Friston free-energy generative
-model from the merge-corrected primary ensemble (N=555,572), in place
-of the stale pre-merge-fix model this figure was originally built
-with.
+Life-cycle comparison figure (main text §5.4, the 1024 x 1024 panel): the template-deviation free energy and the
+Friston free energy, aligned to each confirmed division and averaged, with their matched-bin z-scored correlation.
 
-Background: main text \\S7.2's generative model (mu_p, sigma_p^2, A, b,
-Sigma, slope, intercept, sigma_q^2) was just refit on the corrected
-ensemble (rebuild_fig5_and_fe_model.py). That changes the Friston F
-VALUE computed for every organism-instance, so Figure 13 and the two
-robustness-check correlations in \\S7.4 (circularity check, r=0.86-0.94;
-instance-level check, r=0.783) are all stale even though the
-underlying lineage-tracker data (lifecycle_progress.pkl) itself needed
-no re-extraction.
+The Friston generative model (mu_p, sigma_p^2, A, b, Sigma, slope, intercept, sigma_q^2) is refit live from the
+Ensemble 1 worker files (fe_model.py). Uses lifecycle_progress.pkl (from run_lifecycle.py) and fe_template_1024.npz
+(the radial template, built from v-profiles alone by build_template_from_master.py); no new simulation.
 
-Figure 14 (fig:fe_threeway, the three-way comparison with mean(uv^2))
-is NOT affected -- its caption/text (N=459) is the 256x256 analysis,
-which uses its own, separately-fit 256x256 generative model
-(mu_p=0.0460, sigma_p^2=3.29e-4) that this ensemble correction never
-touched. Only Figure 13, the 1024x1024 panel, needs rebuilding here.
-
-This reuses lifecycle_progress.pkl (already collected, no new
-simulation) and fe_template_1024.npz (the radial template, also
-unaffected by the ensemble correction -- it's built from v-profiles
-alone, nothing to do with flux or the generative model).
-
-Run this from local_package/, where both those files already live.
+Requires: lifecycle_progress.pkl, fe_template_1024.npz, ensemble_merged_seed1000_worker{0..11}.npz.
+Run from the directory holding these files.
 
 Usage:
     python3 rebuild_fe_comparison_1024.py
@@ -108,17 +90,7 @@ def _patched_generator_ctor(bit_generator_name="MT19937", bit_generator_ctor=Non
     return np.random.Generator(bg)
 _np_random_pickle.__generator_ctor = _patched_generator_ctor
 
-# --- refit generative model (rebuild_fig5_and_fe_model.py's real output,
-# merge-corrected primary ensemble, N=555,572) ---
-MU_P = 0.0387
-SIGMA_P2 = 1.611e-04
-A = np.array([2.369e-04, -7.994e-05])
-B = np.array([-8.080e-05, 2.718e-05])
-SIGMA = np.array([[3.392e-10, -1.098e-10], [-1.098e-10, 3.676e-11]])
-SLOPE = -0.0696
-INTERCEPT = 0.0586
-SIGMA_Q2 = 1.514e-04
-# OVERRIDE: the constants above are the stale spacing-32 fit; refit live (spacing 24) from the seed-1000 ensemble.
+# Generative-model constants (main text §5.2), refit live from the Ensemble 1 worker files (see fe_model.py).
 from fe_model import load_constants
 MU_P, SIGMA_P2, A, B, SIGMA, SLOPE, INTERCEPT, SIGMA_Q2 = load_constants()
 
