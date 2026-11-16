@@ -367,10 +367,10 @@ clean-%:
 
 .PHONY: test coverage
 
-test:
+test: src/simulation/libgs_spectral.so
 	$(PY) -m pytest
 
-coverage:
+coverage: src/simulation/libgs_spectral.so
 	rm -rf build/htmlcov build/.coverage
 	COVERAGE_FILE=build/.coverage $(PY) -m coverage run --source tests,src/analysis,src/simulation,src/tools -m pytest
 	COVERAGE_FILE=build/.coverage $(PY) -m coverage report
