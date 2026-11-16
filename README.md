@@ -43,7 +43,7 @@ The first 30 lines of `Makefile` list every option. The main ones:
 
     make -n FULL=1        show what would run, and run nothing
     make FULL=1           the full-size run: every simulation and analysis at the size used for the paper,
-                          writing build/results.tex (many hours; make uses all cores, see JOBS in the Makefile)
+                          writing build/results.tex (about 30 hours, to within roughly 25%, on a 12-core Mac; make uses all cores, see JOBS in the Makefile)
     make FULL=1 pdfs      the same, then build build/paper.pdf and build/supplement.pdf
     make QUICK=1 pdfs     the scaled-down chain plus PDFs in build_quick/ (the numbers in them are not the paper's)
     make times            how long each stage took, longest first
