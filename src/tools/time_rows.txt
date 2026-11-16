@@ -1,0 +1,40 @@
+# Which stages make up each Time cell of the reproducibility table (supplement).   TimeName: stage stage ...
+# Letters only in the name.  Stage names are those of stages.mk.  Edit here, not in the supplement.
+# The order follows the table.
+
+TimeMasterTraj:   master                                   # row: single trajectory
+TimeMasterStats:  anmaster followups pooledcmi             # single-trajectory statistics, follow-ups, pooled collider CMI
+TimeRadiusDiag:   diagsize diagsize2 radiusflux            # radius/eccentricity diagnostics
+TimeDepthSens:    depthsweep plotdepth                     # depth sensitivity
+TimeEnsOne:       ensOne                                   # independent ensemble, first seed (the run only)
+TimeEnsTwo:       ensTwo                                   # independent ensemble, second seed (the run only)
+TimeEnsAnalysis:  anens1 anens2                            # analysis of the two ensembles
+TimePlotEns:      plotens                                  # slice and CMI summary figure
+TimeBlanketFigs:  blanketfigs                              # blanket-thickness and substrate-enriched figures
+TimeFeFit:        fig5fe                                   # Friston generative-model fit
+TimeTimescale:    remaining plottimescale                  # timescale separation, flux asymmetry, boundary mechanism
+TimeShape:        shapestab shapetail                      # shape stability and shape-correlation tail
+TimeJacobian:     jacraw jacmerged                         # Jacobian eigenvalues
+TimeCSolver:      csolver                                  # C solver agreement with the Python solver
+TimeCmiCross:     cmicross                                 # CMI cross-check against Tigramite
+TimeIndepEns:     indepens                                 # CMI on independent frames, ensemble
+TimeIndepMaster:  indepmaster                              # CMI on independent frames, single trajectory
+TimePlacebo:      randomdisks banddisks                    # placebo-disk blanket-thickness sweep
+TimeResolution:   res256 res1024 res2x2                    # resolution x interior-definition factorial
+TimeLifecycle:    lifecycle anlife                         # lifecycle tracker and its analysis
+TimeAutocorr:     lifeautocorr                             # autocorrelation times
+TimeAgeLineage:   lifeage lineagemix                       # age-confound and lineage checks
+TimeTemplate:     fetemplate                               # radial template
+# Row "free-energy comparison" in the submitted supplement lists many scripts; split here (band sweeps and u-enriched get their own rows).
+TimeFeComparison: fecomp instancelevel circularity splithalf surprisal uv2life massbalance pc1details
+TimeBandSweep:    bandsweep bandsweep1 bandsweep2          # blanket-thickness sweep, seeds 0, 1, 2
+TimeUEnriched:    uenriched uenrichedfar                   # substrate-enriched CMI, near and far
+TimeFeSize:       fesize                                   # free-energy size control
+TimeBlockBoot:    blockboot                                # moving-block bootstrap
+TimeNullCal:      nullcal                                  # CMI null calibration
+TimeLevelSet:     levelset levelsetcmi                     # level-set individuation comparison
+TimeThreeVarDv:   threevar1                                # three-variable model, Dw = Dv (the run only)
+TimeThreeVarZero: threevar0                                # three-variable model, Dw = 0 (the run only)
+TimeThreeVarAnalysis: shells3var                           # three-variable analysis
+TimeCountDecorr:  countdecorr countdecorran                # population-count decorrelation
+TimeMergeFig:     mergefig                                 # merge-correction illustration

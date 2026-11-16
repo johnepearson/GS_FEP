@@ -1,0 +1,3 @@
+seed 1000: N=566689  marginal r=-0.2326  PC1 partial r=-0.1815  screened=39.1%
+seed 9000: N=566012  marginal r=-0.2347  PC1 partial r=-0.1843  screened=38.3%
+seed 20000: N=288286  marginal r=-0.2442  PC1 partial r=-0.1889  screened=40.2%

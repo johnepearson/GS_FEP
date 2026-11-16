@@ -1,7 +1,18 @@
-numpy
-scipy
-scikit-image
-scikit-learn
-matplotlib
-tigramite
-numba
+# Python packages, with the versions used for the full run (October 2026).
+# Install with:  python3 -m pip install -r requirements.txt
+numpy==1.26.4
+scipy==1.17.1
+scikit-image==0.26.0
+scikit-learn==1.9.1
+matplotlib==3.8.3
+tigramite==5.2.10.1
+numba==0.68.0          # needed by tigramite (its llvmlite dependency was 0.50.0 in the full run; pip installs it automatically)
+
+# Only for make_v_movie.py (not used by the Makefile):
+# pillow==10.2.0
+
+# Not Python packages, but also needed:
+#   make
+#   a C compiler (gcc) and the FFTW library with its threads library (macOS: brew install fftw)
+#   a LaTeX installation with pdflatex and bibtex (to build the PDFs)
+#   Python 3.11 (the full run used 3.11.8; check with python3 --version)

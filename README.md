@@ -3,48 +3,36 @@
 Code for the solvers, the individuation and lineage-tracking pipeline, the conditional mutual information (CMI)
 estimator, and the scripts for every figure and table in the paper and its Electronic Supplementary Material (ESM).
 
-## Contents
+**Which branch is this?** The `main` branch is the code as submitted with the paper (flat layout, run by hand). The
+`restructure` branch is the same analysis reorganised so that one Makefile rebuilds the numbers, tables and figures,
+with a reproducible environment and automated tests. The scientific content is the same; the commands and the folder
+layout are different.
 
-- `FIGURES.md`: for each figure, and for each number quoted from a small script, the script, the command and the data it reads.
-  This is the table of commands for each result. The ESM's reproduction section gives the same information per quantity.
-- `MANIFEST.txt`: size and SHA-256 of every file in this folder.
-- `requirements.txt`: Python packages.
-- `checkpoint_1024_settled.npz`: the settled starting field (1024 × 1024, F = 0.018, k = 0.055) from which every simulation is run.
-- `run_batch.py`: reruns the analyses in five batches and writes one log per batch to `rerun_logs/`, so printed numbers can be
-  compared with the paper. It re-analyses data files you already have; it does not rerun the simulations.
+## Try it (about 40 minutes the first time)
 
-## Setup
+1. Install Miniforge (a small conda) and create the environment. Step-by-step instructions are in `setup/README.md`.
 
-Python 3 (the scripts use only standard scientific packages).
+       git clone -b restructure https://github.com/johnepearson/GS_FEP.git
+       cd GS_FEP
+       conda env create -f setup/environment.yml
+       conda activate gsfep
+       bash setup/check_setup.sh        # every line should say OK
 
-    pip install -r requirements.txt
+2. Run the tests (about 25 seconds; they do not run a simulation):
 
-The 1024 × 1024 simulations use a C pseudo-spectral solver (it halves the number of FFTs per step). It needs FFTW3 and a C
-compiler; build it once in this folder:
+       make test
 
-    gcc -O3 -march=native -fPIC -shared -o libgs_spectral.so gs_spectral_c.c -lfftw3 -lm
+3. Run the scaled-down pipeline end to end (about 10 minutes on a 12-core Mac):
 
-Scripts that simulate take `--fast` to use it. Without `libgs_spectral.so` the pure-Python solver (`gray_scott.py`) is used.
+       make QUICK=1
+
+   This runs every simulation and analysis stage at a tiny size, so it checks that the whole chain runs. **The numbers
+   it prints are not the paper's numbers** (a few frames instead of hundreds, for example). Results and logs go to
+   `build_quick/`, which is not kept in git; `make clean-quick` removes it.
+
+The full-size run takes much longer and is what produced the paper's numbers. The Makefile builds the C solver
+(`src/simulation/libgs_spectral.so`) automatically, using the FFTW library that the conda environment provides.
 Set `GS_FFT_THREADS=1` when running several worker processes in parallel.
-
-## Producing the data
-
-All three production runs start from `checkpoint_1024_settled.npz`:
-
-| Data | Script | Used for |
-|---|---|---|
-| Single trajectory (500 frames, one every 100 time steps, fields archived to `master_fields/`) | `python3 run_master_trajectory.py --n-frames 500 --fast` | most single-trajectory analyses |
-| Ensembles 1–3 (independent realisations, perturbed once from the checkpoint) | `run_ensemble_merged.py`; commands for the three ensembles are in the header of the script | Table 1, Figure 3, the free-energy model |
-| Lifecycle tracker (lineages, divisions, deaths) | `python3 run_lifecycle.py --fast --n-steps 10000` (10,000 time units, the length used for the paper; resumes with `--resume`) | free-energy comparison of life-cycle trajectories |
-
-Ensemble runs are split over worker processes (`--n-workers`, `--worker-id`) and resume with `--resume`. Each
-realisation is independent, so an interrupted worker loses no completed work.
-
-## Analysing
-
-Each analysis script's docstring says what it computes, which data it reads, and where the result appears in the paper.
-`FIGURES.md` gives the command for every figure. Typical order: produce the data above, then
-`python3 run_batch.py 1` onwards, and compare the logs with the paper.
 
 A regenerated figure can differ in detail from the published one (a different frame, a different random subsample);
 compare the printed numbers with the text.
@@ -53,6 +41,26 @@ compare the printed numbers with the text.
 
 - `Phi_u`, `Phi_v` are the net diffusive fluxes of `u` and `v` across an organism's boundary. "PC1" is the first principal
   component of the two (the paper's flux regressor); "joint" means both fluxes entered as separate regressors.
-- Ensemble worker files are named `ensemble_merged_seed{seed_base}_worker{id}.npz`; seed bases 1000, 9000 and 20000 are
-  Ensembles 1, 2 and 3.
-- "Seed" means a random-number seed only. The starting state of every run is the settled checkpoint.
+- Seed bases 1000, 9000 and 20000 are Ensembles 1, 2 and 3. "Seed" means a random-number seed only: the starting state of
+  every run is the same settled field (1024 x 1024, F = 0.018, k = 0.055).
+- Each analysis script's docstring says what it computes, which data it reads, and where the result appears in the paper.
+
+## Layout
+
+| Path | Contents |
+|---|---|
+| `Makefile`, `stages.mk`, `params.py` | the build: which stage makes which result, and the parameters |
+| `src/simulation/` | the solvers (pure Python and C/FFTW) and the scripts that simulate |
+| `src/analysis/` | individuation, partial correlation, CMI and the other analyses |
+| `src/plotscripts/` | figure scripts |
+| `src/tools/` | build helpers (stage timing, LaTeX macro output) |
+| `src/TeX/` | `paper.tex`, `supplement.tex`, the bibliography, the figures and the settings for each size of run |
+| `tests/` | unit tests, script checks, and `golden/` (validated output of the full-size run) |
+| `setup/` | the conda environment and a script that checks it |
+| `REVISION_TODO.md`, `CHANGELOG.md` | what changed since submission and what is still to do |
+
+The comments at the end of the Makefile say which stage makes which figure and table.
+
+## Not in git
+
+Simulation output (`build*/`, `*.npz`), compiled libraries (`*.so`) and caches are generated on your machine.

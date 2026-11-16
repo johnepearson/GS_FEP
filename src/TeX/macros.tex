@@ -1,0 +1,6 @@
+% Helpers for numbers that come from the code (build/initialize.tex and build/results.tex).
+% A value the code could not compute is written as nan; it prints as "n/a" (make check lists every such macro).
+% \rr and \nn take a macro name (\ifx compares it with the macro \nanvalue, so this also works inside captions).
+\newcommand{\nanvalue}{nan}
+\newcommand{\rr}[2]{\ifx#2\nanvalue\text{n/a}\else\num[round-mode=places,round-precision=#1]{#2}\fi}  % \rr{places}{\Macro}: rounded, with a proper minus
+\newcommand{\nn}[1]{\ifx#1\nanvalue\text{n/a}\else{\sisetup{group-separator={,}}\num{#1}}\fi}        % integer with comma grouping

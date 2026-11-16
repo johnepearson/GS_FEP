@@ -1,0 +1,22 @@
+# Conda environment for the Gray-Scott / free-energy-principle paper.
+#
+#   conda env create -f setup/environment.yml      (run from the project folder, the one with the Makefile)
+#   conda activate gsfep
+#
+# Conda supplies Python 3.11 (the full run used 3.11.8), GNU make, the FFTW library for the C solver, and pytest.
+# The Python packages are installed by pip from requirements.txt, so that file is the one place that records the
+# versions of the full run.  Not provided by conda, and installed separately:
+#   - a C compiler:  macOS  xcode-select --install     Linux  sudo apt install build-essential
+#   - LaTeX with pdflatex and bibtex, only for "make pdfs"  (macOS: MacTeX or BasicTeX; Linux: texlive)
+name: gsfep
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - make
+  - fftw
+  - pytest
+  - coverage
+  - pip:
+      - -r ../requirements.txt

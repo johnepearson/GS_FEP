@@ -1,0 +1,67 @@
+% QUICK configuration: same grid, same physics, a few realisations/frames. make QUICK=1
+% Parameters of the project. Python reads this file with params.py, LaTeX reads it with \input.
+% One macro per line; names contain letters only. Change a number here and "make" reruns what depends on it.
+
+% --- Gray-Scott model and grid (src/simulation) ---
+\newcommand{\Fval}{0.018}
+\newcommand{\kval}{0.055}
+\newcommand{\Duval}{2e-5}
+\newcommand{\Dvval}{1e-5}
+\newcommand{\Lval}{2.5}
+\newcommand{\gridn}{1024}
+\newcommand{\dtval}{1.0}
+
+% --- Independent ensembles (Table 1): random-number seed bases ---
+\newcommand{\SeedOne}{1000}
+\newcommand{\SeedTwo}{9000}
+\newcommand{\SeedThree}{20000}
+
+% --- Ensemble design (Table 1): realisations per ensemble and burn-in in time steps ---
+\newcommand{\RunsOne}{4}
+\newcommand{\BurninOne}{300}
+\newcommand{\RunsTwo}{4}
+\newcommand{\BurninTwo}{300}
+\newcommand{\RunsThree}{4}
+\newcommand{\BurninThree}{300}
+
+\newcommand{\SpacingOne}{100}
+\newcommand{\SpacingTwo}{100}
+\newcommand{\SpacingThree}{300}
+\newcommand{\SettleSteps}{2500}
+\newcommand{\PatchHalf}{80}
+\newcommand{\SettleSeed}{0}
+\newcommand{\MasterFrames}{3}
+\newcommand{\LifeSteps}{100}
+
+% --- Further simulations (frames per run, realisations, steps; from the validated rerun) ---
+\newcommand{\FramesRemaining}{3}
+\newcommand{\FramesShapeTail}{40}
+\newcommand{\FramesShapeStab}{3}
+\newcommand{\FramesMinDist}{3}
+\newcommand{\FramesConfound}{3}
+\newcommand{\FramesResLow}{3}
+\newcommand{\FramesResHigh}{3}
+\newcommand{\CountReal}{2}
+\newcommand{\CountSteps}{300}
+\newcommand{\ThreeVarTarget}{100}
+\newcommand{\ThreeVarBurnin}{100}
+\newcommand{\FramesCentroid}{3}
+\newcommand{\FramesVRate}{3}
+\newcommand{\FramesPosGap}{20}
+\newcommand{\FramesTouching}{20}
+\newcommand{\FramesDensity}{3}
+\newcommand{\FramesDealias}{3}
+\newcommand{\BootReps}{20}
+\newcommand{\CmiJobs}{2}
+\newcommand{\NullReps}{4}
+\newcommand{\JacobianFrame}{0}
+\newcommand{\DepthStride}{1}
+\newcommand{\DivRefA}{100}
+\newcommand{\DivRefB}{200}
+\newcommand{\DivRefC}{300}
+\newcommand{\DivBranch}{200}
+\newcommand{\SnapshotFrame}{1}
+\newcommand{\CmiSubsamples}{4}
+\newcommand{\CmiNullSubsamples}{2}
+\newcommand{\CmiNSub}{8000}
+\newcommand{\CmiTrials}{20}

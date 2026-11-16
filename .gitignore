@@ -1,0 +1,8 @@
+build/
+build_*/
+__pycache__/
+*.pyc
+*.so
+*.npz
+.DS_Store
+.pytest_cache/

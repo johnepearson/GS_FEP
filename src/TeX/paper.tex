@@ -1,0 +1,368 @@
+\documentclass[11pt]{article}
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\graphicspath{{./}{figures/}}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{booktabs}
+\usepackage{siunitx}
+% Numbers computed by the code: build/initialize.tex (parameters) and build/results.tex (results), written by make.
+\input{initialize}
+\input{results}
+\input{macros}
+\usepackage{microtype}\DisableLigatures[-]{encoding=*,family=tt*}
+
+\title{Does a Flux-Defined Markov Blanket Screen Self-Replicating Gray--Scott Spots?\\
+\large A Computational Test of a Blanket Condition from the Free Energy Principle}
+\author{John E. Pearson\\
+Los Alamos, NM 87544}
+\date{\today}
+
+\newcommand{\eps}{\varepsilon}
+\newcommand{\bB}{\boldsymbol{B}}
+
+% Web address of the movie shown in Figure 1.
+\newcommand{\movieurl}{https://www.youtube.com/shorts/qpzrgnDkdhY}
+% Labels of the supplement (\newlabel lines copied from supplement.aux; see build.sh). A plain .tex file is read
+% instead of supplement.aux, so that this document compiles on its own.
+\makeatletter
+\input{supplement_labels}
+\makeatother
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Friston's free energy principle holds that a system separated from its environment by a Markov blanket---a boundary whose states statistically screen its interior from its exterior---can be treated as performing approximate Bayesian inference, and that such blankets arise wherever coupling is short-range. We test this blanket condition in a concrete nonlinear pattern-forming system: self-replicating spots in a reaction-diffusion model that persist, compete, reproduce, and die. Directed boundary exchange and timescale separation hold up reasonably well. A flux-defined blanket does not screen interior from exterior. Flux removes only part of the linear dependence, and a nonlinear test shows that conditioning on flux \emph{increases} the dependence. We argue that this is because flux is a statistical \emph{collider}. Conditioning on the boundary's own concentration state screens about a fifth of the nonlinear dependence. The dependence is concentrated within about one organism radius of the boundary. A band of the surrounding field of that thickness does screen the interior from the exterior beyond it, as any short-range field would; this is not evidence of inference.
+\end{abstract}
+
+\noindent\textbf{Keywords:} Free Energy Principle; Markov blanket; Gray--Scott model; reaction--diffusion; self-replicating spots; conditional independence; conditional mutual information; active inference; collider
+
+
+\section{Introduction}
+
+\subsection{The Free Energy Principle and the Markov Blanket}
+\label{sec:fep_intro}
+
+Friston's free energy principle (FEP) argues that systems coupled by short-range forces should generically possess a \emph{Markov blanket}: a partition of the system's states into internal states $\mu$, external states $\eta$, and blanket states (sensory $s$ and active $a$), such that
+\begin{equation}
+p(\mu, \eta \mid s, a) = p(\mu \mid s, a)\, p(\eta \mid s, a), \label{eq:blanket_condition}
+\end{equation}
+i.e.\ internal and external states are conditionally independent given the blanket \citep{Friston2006,Friston2010,Friston2013,Friston2019Particular,Friston2023Simpler}. This structure is presented as generic: ``if the coupling among an ensemble of dynamical systems is mediated by short-range forces, then the states of remote systems must be conditionally independent'' \citep{Friston2013}.
+
+The FEP's further claim is an inferential reading of the blanket: given a blanket, the internal states can be interpreted as performing approximate Bayesian inference about the external states, by minimising a variational free energy. The blanket condition is necessary but not sufficient for this reading. \citet{Friston2023Simpler} make the full logical structure explicit. The system, within the regime studied, must have a steady-state (time-invariant) density over its whole configuration, which, for our discretised two-field system, is a function of $2\times2^{20}$ variables; Eq.~\ref{eq:blanket_condition} must hold of that density; and a synchronisation condition must hold, so that the expected internal state given the blanket and the expected external state given the blanket are related by a smooth map. Only when all three hold does the inferential reading follow.
+
+The framework has drawn substantial critical attention. \citet{Raja2021} argue that imposing a blanket partition after the fact licenses an inferential redescription of \emph{any} dynamics (the ``Markov blanket trick''), which makes the claims hard to falsify. \citet{Aguilera2022} show, for weakly coupled linear stochastic systems, that the blanket condition is not generic and requires sparse coupling structure. \citet{Bruineberg2022} argue that a purely statistical, Pearl-style Markov blanket \citep{Pearl1988} (a conditional-independence structure read off a joint distribution) is conflated in the FEP literature with Friston's dynamical blanket, which additionally constrains the flow of influence; we return to this in Section~\ref{sec:blanket_formulation}. Further critical literature is discussed in the Electronic Supplementary Material (ESM) \S\ref{sec:S_more_lit}.
+
+Self-replication is of particular interest because reaction-diffusion spots are a fully specified system in which the question of cyclically reforming blankets can actually be posed (ESM \S\ref{sec:S_more_lit}). What is largely missing is a direct empirical test, in a nonlinear, spatially extended, many-body system, of whether an intuitively organism-like structure has the conditional independence the framework requires. Analytical constructions exist for low-dimensional systems such as two coupled Lorenz systems \citep{Friston2021Stochastic}. \citet{DaCosta2021} derive the inferential reading for stationary processes once a blanket partition is given, and \citet{Palacios2020} exhibit hierarchical self-organisation in simulations built on free energy minimisation. Organism-like patterns in cellular automata and other dynamical systems have been characterised through autopoiesis and information-based criteria \citep{Beer2015,Beer2020,Biehl2016}, which are not tests of blanket conditional independence. We are not aware of an earlier direct test of this kind in a spatially extended system of interacting, self-replicating structures, and this paper supplies one.
+
+\subsection{The Gray--Scott Model and Self-Replicating Spots}
+
+The Gray--Scott system \citep{Gray1983,GrayScott1984} is a two-species reaction-diffusion model with the autocatalytic step $U + 2V \to 3V$. \citet{Pearson1993} showed that it supports isolated spots that grow, elongate and divide, reproducing through chemistry and diffusion alone. In crowded regimes the spots compete for substrate and die, producing sustained spatiotemporal chaos (Pearson's pattern class $\epsilon$; \citealt{Munafo}; Figure~\ref{fig:spots_snapshot}). The spots are compact, exchange material with their environment, and arise from a fully specified partial differential equation. If any simple system's spots should possess Markov blankets on Friston's own criteria, these seem good candidates.
+
+\begin{figure}[htbp]
+\centering
+\hypersetup{pdfborder={0 0 0}}%
+\href{\movieurl}{\includegraphics[width=0.5\textwidth]{spots_snapshot.png}}%
+\hypersetup{pdfborder={0 0 1}}
+\caption{Snapshot of the activator field $v$ in the chaotic, spot-splitting regime studied here ($\gridn\times\gridn$): round spots, elongated organisms mid-division, and competitive packing. The image is a still frame from a movie of the simulation; click the image to play the movie in a web browser, or see \url{\movieurl}.}
+\label{fig:spots_snapshot}
+\end{figure}
+
+Section~\ref{sec:model} defines the model and the individuation of organisms. Section~\ref{sec:blanket} tests three blanket conditions; the conditional-independence test of Section~\ref{sec:conditional_independence} is the primary result, and the later analyses test whether it survives. Section~\ref{sec:robustness} addresses the ergodicity assumption. Section~\ref{sec:freeenergy} constructs three notions of free energy as an exploratory control. Sections~\ref{sec:discussion} and~\ref{sec:conclusion} discuss and conclude.
+
+\section{Model and Numerical Methods}
+\label{sec:model}
+
+We simulate the Gray--Scott system on a periodic square of side $L=\num{\Lval}$:
+\begin{align}
+\frac{\partial u}{\partial t} &= D_u \nabla^2 u - u v^2 + F(1-u), \label{eq:gs_u}\\
+\frac{\partial v}{\partial t} &= D_v \nabla^2 v + u v^2 - (F+k) v, \label{eq:gs_v}
+\end{align}
+with $D_u=\num{\Duval}$, $D_v=\num{\Dvval}$, and $F=\num{\Fval}$, $k=\num{\kval}$ for the chaotic replicating regime \citep{Munafo}. Here $u$ (substrate) is fed at rate $F$ towards 1, $v$ (activator) is produced autocatalytically at rate $uv^2$, and $v$ decays at rate $F+k$. We use a $\gridn\times\gridn$ pseudo-spectral scheme (first-order exponential time differencing, $\Delta t=\rr{0}{\dtval}$, one step per time unit), which resolves each organism at about 20 pixels per radius. Runs start from a pre-relaxed, populated field (ESM \S\ref{sec:S_reproducibility}). The scheme agrees closely with an independent $256\times256$ finite-difference scheme \citep{Pearson1993} and is insensitive to omitting an explicit de-aliasing rule (ESM \S\ref{sec:S_pseudospectral}).
+
+\subsection{Individuation}
+\label{sec:individuation}
+
+Organisms are individuated geometrically from $v$ in four steps (ESM \S\ref{sec:S_individuation}, \S\ref{sec:S_merge_procedure}). (1) \emph{Threshold.} For every frame, threshold $v$ using Otsu's method \citep{Otsu1979}, making everything above the cutoff spot and everything below background. (2) \emph{Markers.} Take the local maxima of $v$ among the spot pixels, at least 24 pixels apart, as one marker per spot core, so that a spot with a slightly bumpy peak is not counted twice. (3) \emph{Watershed.} Turn $v$ upside down so that each spot is a bowl with its marker at the bottom, let every bowl fill at the same rate, and draw a boundary wherever water from two bowls meets, correctly treating spots that cross the periodic boundaries. This gives the \emph{raw regions}. (4) \emph{Merge.} Fuse touching raw regions whose equivalent-radius circles overlap, and repeat until none do, because the watershed can cut one physical spot into two pieces (ESM Figure~\ref{fig:merge_correction}). The merged result is the primary individuation used throughout.
+
+The \emph{interior state} $I$ is the mean $v$ in a core obtained by shrinking the organism's mask until each pixel is at least $50\%$ of the organism's radius from the outside (the result does not depend on this fraction; ESM \S\ref{sec:S_individuation}). The \emph{exterior state} $E$ is the mean $v$ in a ring $24$ pixels wide just outside the boundary (Figure~\ref{fig:schematic}, left). The organism's \emph{mask} is its segmented region and its \emph{boundary} is the contour of that mask. Section~\ref{sec:levelset} repeats the key test with a second, differently biased individuation method.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figure2_blanket.png}
+\caption{Left: the test on a field snapshot: organism boundary (black), shrunken interior $I$ (green, dashed), outer edge of the exterior ring $E$ (white), and outer edge of the far exterior used in Section~\ref{sec:corrlength} (magenta, dotted). Right: the abstract structure. $I$ and $E$ are coarse-grained summaries of the full internal and external states, so a failure of screening between them does not by itself show that no partition of the full state space would screen. A blanket requires that conditioning on $\bB{}$ renders $I$ and $E$ independent (top); we find a persistent dependence (bottom).}
+\label{fig:schematic}
+\end{figure}
+
+\section{Testing the Markov Blanket Hypothesis}
+\label{sec:blanket}
+
+Friston's criterion for a blanket requires three conditions, which we test in turn: \textbf{(A)} a separation of timescales, such that the blanket changes slowly relative to the states it couples \citep{Friston2013} (Section~\ref{sec:timescale}); \textbf{(B)} a directed sensory/active asymmetry (Section~\ref{sec:flux}); and \textbf{(C)} conditional independence of internal and external states given the blanket (Section~\ref{sec:conditional_independence}). Condition \textbf{(C)} is the load-bearing one; \textbf{(A)} and \textbf{(B)} are meant to make it possible but do not guarantee it. We take the blanket state to be the net diffusive flux $\bB{}=(\Phi_u,\Phi_v)$ of $u$ and $v$ across the boundary. \emph{Conditional coupling} means the dependence between $I$ and $E$ that remains after conditioning on $\bB{}$, measured by the partial correlation and by the conditional mutual information
+\begin{equation}
+\mathrm{MI}(X;Y\mid Z)=\iiint p(x,y,z)\,\ln\frac{p(x,y\mid z)}{p(x\mid z)\,p(y\mid z)}\,dx\,dy\,dz ,
+\label{eq:cmi}
+\end{equation}
+in nats (the unit of information when logarithms are natural), which is zero if and only if $X$ and $Y$ are conditionally independent given $Z$ and, unlike a correlation, detects nonlinear dependence. $I$ and $E$ are coarse-grained, low-dimensional summaries of the full interior and exterior. The nearest-neighbour estimator used below could not be run on the full fields in any case, since nonparametric information estimation degrades sharply with dimension. This coarsening is licensed by a two-sided data processing inequality \citep{CoverThomas2006}: for functions $F,G$ applied separately to the two variables, $\mathrm{MI}(X;Y\mid Z)\ge \mathrm{MI}(F(X);G(Y)\mid Z)$. A positive $\mathrm{MI}(I;E\mid\bB{})$ is therefore a lower bound on the corresponding quantity for a richer description, so, for fixed masks, a positive finding cannot be an artefact of discarding information. The guarantee assumes the masks defining $I$ and $E$ do not depend on those values, a reasonable but unverified premise, and it gives no protection to the choice of $\bB{}$ itself, since conditioning is not processing in the inequality's sense (ESM \S\ref{sec:S_coarse}).
+
+\subsection{Timescale Separation (Criterion A)}
+\label{sec:timescale}
+
+For organisms followed unambiguously between frames 10 time units apart, we compute $\rho = v_{\text{cntr}}\,\tau/R$, where $v_{\text{cntr}}$ is the centroid speed, $R$ the radius and $\tau = 1/(F+k) \approx \rr{1}{\Tau}$ the relaxation time of the featureless background state (ESM \S\ref{sec:S_jacobian}). Over $\nn{\RemN}$ transitions the median $\rho$ is $\rr{3}{\RemRhoMedian}$ (90th percentile $\rr{3}{\RemRhoNinety}$, 99th $\rr{2}{\RemRhoNinetyNine}$): an organism moves about $\rr{0}{\RemRhoMedianPercent}\%$ of its radius per relaxation time. Position is not shape, so we also compared each organism's boundary outline between matched frames after best-aligning rotation. Over $\nn{\ShapeN}$ matched transitions the median correlation is $\rr{3}{\ShapeCorrMedian}$. The lower tail largely reflects nearly circular organisms, whose shapes provide little basis for correlation. Measured directly, the boundary moves by a median of $\rr{1}{\ShapeRmsMedianPercent}\%$ of the radius between frames (99th percentile $\rr{0}{\ShapeRmsNinetyNinthPercent}\%$), and the largest changes occur where a boundary is made or lost, at divisions and before deaths (ESM \S\ref{sec:S_shape_tail}). Matched-asymptotic theory predicts slowly drifting spots only for small diffusivity ratios, far from ours ($D_v/D_u=\rr{1}{\DvOverDu}$); we do not claim equivalence with it, only that the separation persists (ESM \S\ref{sec:S_more_lit}).
+
+Friston's criterion compares the blanket's rate of change with that of the states it separates. The lag at which each autocorrelation first falls below $1/e$ is about \rr{0}{\AcfTimeI} time units for $I$, \rr{0}{\AcfTimeE} for $E$, and \rr{0}{\AcfTimeFluxU} and \rr{0}{\AcfTimeFluxV} for $\Phi_u$ and $\Phi_v$, all well above $\tau$. The blanket is slower than $I$ but not slower than $E$, so the strict form of the criterion remains unestablished in either direction (ESM \S\ref{sec:S_autocorr}).
+
+\subsection{Exchange-Flux Asymmetry (Criterion B)}
+\label{sec:flux}
+
+By the divergence theorem the net outward diffusive flux of species $X$ is $\Phi_X = -D_X \int_\Omega \nabla^2 X\, dA$, computed from the discrete Laplacian. Across $\nn{\TrajN}$ organism-instances, $\Phi_u<0$ (net inward) and $\Phi_v>0$ (net outward) in all of them: the substrate $u$, which neighbouring organisms compete for, flows in, and the activator $v$ flows out. This is not strong independent evidence of a directed sensory/active structure, since an organism is individuated as a region of high $v$ and depleted $u$, so diffusion down each gradient is nearly a consequence of the segmentation. Diffusive flux also depends on concentrations on both sides of the boundary (Fick's law), so each channel is coupled in both directions, a weaker kind of ``action'' than critics argue can license an inferential interpretation \citep{Raja2021}. The check shows that the labelling is coherent, not that the dependency structure the framework needs is present.
+
+\subsection{Conditional Independence (Criterion C)}
+\label{sec:conditional_independence}
+
+We test whether $I \perp E \mid (\Phi_u, \Phi_v)$. This concerns the operational partition above and is not a search over arbitrary partitions of the full state space. The unit of analysis is the organism-instance, one organism in one sampled frame. Instances in the same frame share a field and are not independent, so we also report intervals from a bootstrap that resamples whole frames, and we rely on effect sizes as well as significance.
+
+\subsubsection{Linear partial correlation}
+\label{sec:ci_ensemble}
+\label{sec:ci_single_traj}
+\label{sec:ci_single_traj_run}
+
+We regress $I$ and $E$ separately on $\bB{}_i=(1,\Phi^{\text{PC1}}_i)$ by least squares, where $\Phi^{\text{PC1}}$ is the leading principal component of the standardised flux pair, and correlate the residuals $\Delta I_i$, $\Delta E_i$:
+\begin{equation}
+r = \frac{\sum_{i} \Delta I_i\, \Delta E_i}{\sqrt{\sum_{i} \Delta I_i^2 \sum_{i} \Delta E_i^2}}.
+\label{eq:partial_corr}
+\end{equation}
+We use PC1 because $\Phi_u$ and $\Phi_v$ are nearly collinear ($r=\rr{2}{\FluxCollinearity}$). Regression on both fluxes together (the joint regression) is numerically well determined here but gives a larger value, outside the range of the two single-flux values; we report PC1 as the smaller, more conservative estimate and treat the joint value as a further sign of the collider structure discussed below (ESM \S\ref{sec:S_pc1}).
+
+To avoid treating snapshots of one run as independent, we also apply the test to three independent ensembles of realisations (Table~\ref{tab:ensemble_summary}). Each realisation is branched from one converged configuration, perturbed once by Gaussian noise ($\sigma=10^{-3}$, distinct seed), and evolved for a burn-in of $\nn{\BurninOne}$ steps with no further noise. That is at least twice the time (on average $\nn{\DivSeparation}$ steps) for two noisy copies of the same field to come within $90\%$ of the separation of independent draws (ESM Figure~\ref{fig:lyapunov}). The organism count is checked separately (Section~\ref{sec:robustness}). The third ensemble uses wider sample spacing ($\nn{\SpacingThree}$ steps rather than $\nn{\SpacingOne}$; ESM \S\ref{sec:S_ensemble2}). The table also gives the single trajectory ($N=\nn{\TrajN}$ instances from $\nn{\MasterFrames}$ snapshots of one long run), which alone records the shell profiles and lineages the later analyses need.
+
+\begin{table}[htbp]
+\centering
+
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lrrrccccc}
+\toprule
+Dataset & Runs & Burn-in & $N$ & Marginal $r$ & Partial $r$ & Screened & Naive CI & Resampled CI \\
+\midrule
+Ensemble 1 & $\RunsOne$ & $\BurninOne$ & \nn{\EnsOneN} & $\rr{3}{\EnsOneMarginal}$ & $\rr{4}{\EnsOnePartial}$ & $\rr{1}{\EnsOneScreened}\%$ & $[\rr{4}{\EnsOneNaiveLo},\rr{4}{\EnsOneNaiveHi}]$ & $[\rr{4}{\EnsOneBootLo},\rr{4}{\EnsOneBootHi}]$ \\
+Ensemble 2 & $\RunsTwo$ & $\BurninTwo$ & \nn{\EnsTwoN} & $\rr{3}{\EnsTwoMarginal}$ & $\rr{4}{\EnsTwoPartial}$ & $\rr{1}{\EnsTwoScreened}\%$ & $[\rr{4}{\EnsTwoNaiveLo},\rr{4}{\EnsTwoNaiveHi}]$ & $[\rr{4}{\EnsTwoBootLo},\rr{4}{\EnsTwoBootHi}]$ \\
+Ensemble 3 & $\RunsThree$ & $\BurninThree$ & \nn{\EnsThreeN} & $\rr{3}{\EnsThreeMarginal}$ & $\rr{4}{\EnsThreePartial}$ & $\rr{1}{\EnsThreeScreened}\%$ & $[\rr{4}{\EnsThreeNaiveLo},\rr{4}{\EnsThreeNaiveHi}]$ & $[\rr{4}{\EnsThreeBootLo},\rr{4}{\EnsThreeBootHi}]$ \\
+Trajectory & --- & --- & \nn{\TrajN} & $\rr{3}{\TrajMarginal}$ & $\rr{4}{\TrajPartial}$ & $\rr{1}{\TrajScreened}\%$ & $[\rr{4}{\TrajNaiveLo},\rr{4}{\TrajNaiveHi}]$ & $[\rr{4}{\TrajBootLo},\rr{4}{\TrajBootHi}]$ \\
+\bottomrule
+\end{tabular}
+\caption{Interior--exterior correlation before and after conditioning on flux (PC1), with 95\% confidence intervals. Runs are realisations, and burn-in is in time steps after branching. The trajectory is the single long run, sampled every $100$ steps from $t=\the\numexpr\SettleSteps+100\relax$, after the $\nn{\SettleSteps}$ steps of growth of the settled field all runs start from. ``Screened'' is $1-r_{\mathrm{partial}}^2/r_{\mathrm{marginal}}^2$. The naive interval treats organisms as independent. The resampled interval does not: it resamples whole frames (\nn{\BootReps} replicates) for the trajectory and whole realisations for the ensembles.}
+\label{tab:ensemble_summary}
+\end{table}
+
+The estimates agree in sign and magnitude, which we take as weak, informal support for the ergodicity assumption. Of the $\nn{\EnsOneRealisations}$ realisations in the first ensemble, $\nn{\EnsOneSameSign}$ have the pooled estimate's sign. At these sample sizes rejecting exact conditional independence is nearly guaranteed, so the substantive quantity is the screened fraction: flux removes about $\rr{0}{\ScreenedMin}$--$\rr{0}{\ScreenedMax}\%$ of the marginal shared variance, real but well short of the near-complete screening a blanket requires.
+
+\subsubsection{Nonlinear conditional mutual information}
+\label{sec:ci_cmi}
+
+A linear test cannot detect purely nonlinear dependence, so we also estimate $\mathrm{MI}(I;E\mid\bB{})$ with the Frenzel--Pompe nearest-neighbour estimator ($k_{\mathrm{NN}}=5$; \citealt{Kraskov2004,FrenzelPompe2007}), checked on synthetic data with known ground truth and against an independent implementation (ESM \S\ref{sec:S_cmi_calibration}). $I$, $E$, $\Phi_u$ and $\Phi_v$ are each $z$-scored (rescaled to zero mean and unit variance), applied identically to the observed statistic and every null trial, because the estimator is scale sensitive when inputs span very different ranges, as flux ($\sim10^{-4}$) and $I$, $E$ ($\sim10^{-1}$) do (ESM \S\ref{sec:S_cmi_calibration}). This estimator conditions on both fluxes jointly; it involves no regression, so their collinearity causes no instability.
+
+On $N=\nn{\PooledNSub}$ subsamples of the single trajectory the CMI given flux is $\rr{3}{\PooledFluxCMI}$ nats, against $\rr{3}{\PooledMI}$ nats unconditioned, so conditioning on flux \emph{raises} the dependence by about $\rr{0}{\PooledFluxRise}\%$ (Table~\ref{tab:cmi}). The estimate varies from subsample to subsample, so the table gives means over $\nn{\PooledSubsamples}$ subsamples. Each is tested against a null built by local permutation among the organisms with the nearest fluxes in the style of \citet{Runge2018} ($\nn{\PooledTrials}$ trials); in individual subsamples the conditioned values lie between $\rr{0}{\PooledSDLo}$ and $\rr{0}{\PooledSDHi}$ null standard deviations above it. The independent ensemble agrees: $\nn{\EnsCmiSubsamples}$ subsamples of $\nn{\PooledNSub}$ give $\rr{3}{\EnsCmiMean}$ nats given flux ($\rr{0}{\EnsCmiSDLo}$--$\rr{0}{\EnsCmiSDHi}$ null SDs; Figure~\ref{fig:ensemble_summary}, right, shows one of them). We checked both this null and a second one, which shuffles $E$ only among organisms in the same one of $\nn{\CalClusters}$ groups of similar flux (found by $k$-means clustering), on $\nn{\CalReplicates}$ synthetic replicates in which $I\perp E\mid\bB{}$ holds by construction. The null-SD statistic had mean $\rr{2}{\CalLocalZMean}$ and SD $\rr{2}{\CalLocalZSD}$ for the local null ($\rr{2}{\CalClusterZMean}$ and $\rr{2}{\CalClusterZSD}$ for the grouped null), and $\rr{0}{\CalLocalOverLow}\%$ and $\rr{0}{\CalClusterOverLow}\%$ of replicates exceeded $1.645$ for the local and grouped nulls respectively, against the nominal $5\%$ (ESM \S\ref{sec:S_cmi_calibration}). We still read the figures as diagnostic comparisons, since the check uses a constructed independence. Inside slices of fixed flux the dependence exceeds that of the whole population in $\nn{\EnsFigAbove}$ of $\nn{\EnsFigSlices}$ slices, peaking at $\rr{2}{\EnsFigPeakRatio}$ times the unconditioned value in the second-lowest-flux slice, and falls to the unconditioned value or below only in the lowest-flux slice and the two highest (Figure~\ref{fig:ensemble_summary}, left).
+
+\begin{table}[!t]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+Condition on & CMI (nats) & Dependence \\
+\midrule
+nothing (marginal $\mathrm{MI}(I;E)$) & $\rr{3}{\PooledMI}\pm\rr{3}{\PooledMISE}$ & --- \\
+flux $(\Phi_u,\Phi_v)$ & $\rr{3}{\PooledFluxCMI}\pm\rr{3}{\PooledFluxCMISE}$ & up $\rr{0}{\PooledFluxRise}\%$ \\
+boundary concentration $(u_\partial,v_\partial)$ & $\rr{3}{\PooledBoundaryCMI}\pm\rr{3}{\PooledBoundaryCMISE}$ & down $\rr{0}{\PooledBoundaryScreened}\%$ \\
+\bottomrule
+\end{tabular}
+\caption{Nonlinear interior--exterior dependence in the single trajectory ($N=\nn{\TrajN}$): means $\pm$ standard error over $\nn{\PooledSubsamples}$ subsamples of $\nn{\PooledNSub}$. The last column is the change from the marginal dependence. Conditioning on flux raised the dependence in $\nn{\PooledFluxHigher}$ of the $\nn{\PooledSubsamples}$ subsamples.}
+\label{tab:cmi}
+\end{table}
+
+Flux is computed from the concentrations on both sides of an organism's own boundary: from the interior side, which $I$ summarises, and from the exterior side, which $E$ summarises. A diffusive flux depends on the difference between the two. The structure is therefore $I\rightarrow\Phi\leftarrow E$: flux is a joint downstream effect of the two sides, not a state either side acts \emph{through}. That is a statistical collider, and conditioning on a collider couples its two sources instead of separating them. Once the flux is fixed, a change in one side's concentration has to be accompanied by a change in the other's, so knowing $I$ again tells us something about $E$, even where the two would otherwise be less related (Section~\ref{sec:blanket_formulation}). We tested this by conditioning instead on the organism's own boundary concentration $(u_\partial,v_\partial)$, a genuine state. Flux raises the dependence, as a collider should; boundary concentration lowers it, by about a fifth (Table~\ref{tab:cmi}). The two move in opposite directions and neither comes near the screening a strict blanket requires. We keep flux as the blanket variable throughout, since swapping variables for the best-looking result would be the post-hoc partition fitting \citet{Raja2021} warn against (ESM \S\ref{sec:S_collider_test}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{ensemble_1024.png}
+\caption{Nonlinear interior--exterior dependence in the independent ensemble ($N=\nn{\EnsFigN}$). Left: organisms are sorted by flux (PC1) and divided into \nn{\EnsFigSlices} groups of equal size, so that organisms within a group have similar flux. Each dot is $\mathrm{MI}(I;E)$ estimated on all of the roughly $\nn{\EnsFigSliceN}$ organisms in a group, plotted at the group's median flux. The grey band is the same estimate from random draws of $\nn{\EnsFigDrawN}$ organisms from the whole population (mean $\pm2$ SD of a single estimate over \nn{\EnsFigDraws} draws; the mean, dashed in the figure, is $\rr{3}{\EnsFigBand}$ nats). Flux would screen if every group sat near zero; instead \nn{\EnsFigAbove} of the \nn{\EnsFigSlices} groups lie above the band, which is itself well above zero. Right: observed CMI on one $N=\nn{\EnsFigSubN}$ subsample (red line) against the nearest-neighbour conditional null (blue), $\rr{1}{\EnsFigNullSD}$ null SDs above its mean.}
+\label{fig:ensemble_summary}
+\end{figure}
+
+\subsubsection{Alternative explanations}
+\label{sec:alt_explanations}
+
+We checked five less interesting explanations: local crowding, a diffuse whole-domain confound, life-cycle stage, a between-organism mixture artefact, and organism size and shape with frame-wide fluctuations. None explains the violation away (ESM \S\ref{sec:S_alt_explanations}). Local crowding, measured as the number of neighbours within 80 pixels, leaves the correlation of the same sign and slightly stronger ($r=\rr{3}{\AltCrowding}$ against $\rr{3}{\AltBaseline}$), and subtracting each frame's average from every variable, which removes any frame-wide influence, changes it by about $\nn{\AltFrameEffectsPercent}\%$. A lineage is one organism followed from frame to frame, from its birth by division to its own death or division. Comparing each organism only with its own lineage, by subtracting the lineage's average from every variable, still gives $r=\rr{3}{\LineageWithinR}$, with all of the covariance within lineages, ruling out a pure mixture of organisms that differ from one another. The coupling is weakest in the youngest third of organisms ($r=\rr{3}{\AgeYoungR}$) and about \rr{1}{\AgeOlderRatio} times as strong in the older thirds, so it builds with age rather than being inherited. Organism size alone does not account for it (marginal $r$ \rr{3}{\SizeMarginalTwo}$\to$\rr{3}{\SizeRadiusOnlyTwo}). Adding radius and eccentricity \emph{to the flux conditioning} flips the sign ($r=\rr{3}{\AltRadiusEccentricity}$), but we read that as a limit of conditioning on flux: radius shares about $\rr{0}{\RadiusFluxSharePercent}\%$ of its variance with the first principal component of flux, so the adjusted flux is nearly a readout of $I$ itself. Among the $\nn{\AltCleanN}$ organisms ($\rr{1}{\AltCleanPercent}\%$) that individuate without merging, $r=\rr{3}{\AltCleanR}$ against $\rr{3}{\AltBaseline}$ overall.
+
+\subsubsection{Robustness to a non-watershed individuation method}
+\label{sec:levelset}
+
+Watershed boundaries are drawn relative to neighbours, so the violation might be an artefact. We repeated the test with fixed-threshold connected components of $v$, which share no construction with watershed, on $\nn{\LevelFrames}$ archived frames. Excluding touching pairs gives $r=\rr{3}{\LevelSingleR}$ ($N=\nn{\LevelSingleN}$); recovering them with a local watershed split gives $r=\rr{3}{\LevelPooledR}$ ($N=\nn{\LevelPooledN}$). The sign and a clearly nonzero value survive, but the linear magnitude is about a third of the watershed value. The nonlinear test agrees more closely: conditioning on flux raises the dependence from \rr{3}{\LevelCmiPooledMI} to \rr{3}{\LevelCmiPooledCMI} nats on the pooled sample (\rr{0}{\LevelCmiPooledSD} null SDs), as for watershed organisms. The recovered pairs alone are the exception, where flux removes most of a small dependence (\rr{3}{\LevelCmiRecoveredMI}$\to$\rr{3}{\LevelCmiRecoveredCMI} nats, \rr{1}{\LevelCmiRecoveredSD} SDs; ESM \S\ref{sec:S_levelset}).
+
+We conclude that the conditional-independence property of a Markov blanket, as formalised by \citet{Friston2013}, does not hold for the flux-defined partition of individual organisms in this system, across linear and nonlinear estimators, single-trajectory and ensemble sampling, and two individuation methods.
+
+\subsection{Spatial Structure of the Conditional Coupling}
+\label{sec:corrlength}
+
+We measured $r(s)$, Eq.~\ref{eq:partial_corr} with $E_i$ replaced by the mean $v$ in the organism's own concentric shell at distance $s$ from its boundary (shells $8$ px wide near the organism, $24$ px wide farther out), out to $\rr{0}{\DecayMaxRadii}$ organism radii ($N=\nn{\TrajN}$; ESM \S\ref{sec:S_corrlength}; PC1 regressor, since the joint estimate falls outside the single-flux range at $\nn{\DecayUnstable}$ of $\nn{\DecayShells}$ shells, ESM \S\ref{sec:S_pc1}). The curve (Figure~\ref{fig:decay_curve}) is negative at every distance tested. The coupling is concentrated within about one radius of the boundary but does not vanish at the greatest distances.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{decay_curve_1024.png}
+\caption{Partial correlation (PC1 flux regressor) between interior and exterior state as a function of distance from the organism's boundary in organism radii ($N=\nn{\TrajN}$; error bars 95\% CI).}
+\label{fig:decay_curve}
+\end{figure}
+
+\subsection{Richer Blanket Representations}
+\label{sec:richer_blanket}
+
+A linear enrichment, flux plus the organism's own $v$ in $16$ concentric exterior shells about $8$ px wide, does not screen the far-field exterior; adding the near-field shells reverses the sign of the correlation, which arises from near-collinear predictors, not from screening (ESM \S\ref{sec:S_richer_blanket}). We also tested the shared substrate $u$ nonlinearly. Conditioning on flux plus the mean $u$ in seven shells outside the boundary lowers the CMI from \rr{3}{\UEnrFluxOnly} to \rr{3}{\UEnrSevenShells} nats, much more than seven columns of random noise do (\rr{3}{\UEnrNoiseSeven}). But this is not screening. The shells lie inside the ring over which $E$ is measured, so they largely contain $E$: they explain $\nn{\UEnrRsqEThree}$--$\nn{\UEnrRsqESeven}\%$ of its variance, and conditioning on a noisy copy of $E$ that explains the same fraction lowers the CMI nearly as much (ESM \S\ref{sec:S_u_enriched}).
+
+Because those shells overlap $E$, we asked how much of the surrounding field must be conditioned on before the interior is independent of the exterior beyond it. We took a band of width $w$ beyond the boundary, summarised by three area-weighted means each of $v$ and $u$, and measured the dependence between the interior and the $24$-px shell \emph{beyond} the band, so that nothing in the conditioning set overlaps the exterior variable (specification fixed in advance; ESM \S\ref{sec:S_band}). With flux alone ($w=0$) the dependence is $\rr{3}{\BandOrgZero}$ nats; this exceeds the headline $\rr{3}{\PooledFluxCMI}$ because $E$ here is computed from the concentric-shell profiles, not from the $24$-px ring of Section~\ref{sec:individuation}. The dependence falls as the band thickens, and from $w=24$ px, about one organism radius ($R\approx21$ px), outward it is at most $\rr{3}{\BandMaxThick}$ nats, at most $\rr{0}{\BandMaxThickPercent}\%$ of the flux-only value and at most $\rr{1}{\BandMaxThickSD}$ null SDs (Table~\ref{tab:band}). A noisy copy of the exterior variable screens as well, as it should in a spatially continuous field. A band about one radius thick therefore screens the interior from the exterior beyond it, and the thin boundary-defined blanket still fails.
+
+Screening is not specific to organisms. As a control, we repeated the sweep on disks of the same size placed where no organism is. They screen too, and sooner: from $16$ px they are no more than $\rr{3}{\BandDiskExcess}$ nats above the null, whereas the organisms' dependence persists further out (Table~\ref{tab:band}).
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{rcc}
+\toprule
+Band width $w$ (px) & Organisms & Placebo disks \\
+\midrule
+$0$ (flux only) & $\rr{3}{\BandOrgZero}$ & $\rr{3}{\BandDiskZero}$ \\
+$8$ & $\rr{3}{\BandOrgEight}$ & $\rr{3}{\BandDiskEight}$ \\
+$16$ & $\rr{3}{\BandOrgSixteen}$ & $\rr{3}{\BandDiskSixteen}$ \\
+$24$ & $\rr{3}{\BandOrgTwentyFour}$ & $\rr{3}{\BandDiskTwentyFour}$ \\
+$40$ & $\rr{3}{\BandOrgForty}$ & $\rr{3}{\BandDiskForty}$ \\
+$64$ & $\rr{3}{\BandOrgSixtyFour}$ & $\rr{3}{\BandDiskSixtyFour}$ \\
+$96$ & $\rr{3}{\BandOrgNinetySix}$ & $\rr{3}{\BandDiskNinetySix}$ \\
+\bottomrule
+\end{tabular}
+\caption{Dependence between the interior and the $24$-px shell beyond a band of width $w$, given flux and summaries of the band (CMI, nats). Organisms: mean of $\nn{\BandSubsamples}$ subsamples of $\nn{\CmiNSub}$. Placebo disks: disks of matched size placed where no organism is, one subsample of $\nn{\CmiNSub}$ (ESM \S\ref{sec:S_band}). Values at or below zero are estimator noise.}
+\label{tab:band}
+\end{table}
+
+A chemical memory variable added to the model does not remove the violation (partial correlation in the innermost shell $\rr{2}{\ShellInnerMemory}$ against $\rr{2}{\ShellInnerPlain}$), and when it does not diffuse the pattern freezes into a lattice (ESM \S\ref{sec:threevar}).
+
+\section{Robustness of the Statistical Approach}
+\label{sec:robustness}
+
+The single-trajectory analyses treat time-separated samples of one chaotic trajectory as approximately independent draws from a stationary distribution, an ergodicity assumption we cannot prove. Three claims should be kept apart: that the system stays in a statistically stable regime, that our statistics are robust to initialisation and sampling, and that the sampling estimates the invariant distribution the theory refers to. Our checks bear on the first two (ESM \S\ref{sec:S_robustness}). Perturbed copies diverge until their fields differ as much as independent draws would. Measured from three reference states of one long run (\nn{\DivRefA}, \nn{\DivRefB} and \nn{\DivRefC} steps after the settled starting field), the time to reach that level agrees to within about $\nn{\DivTNinetyRangePercent}\%$ (\nn{\DivTNinetyMin}--\nn{\DivTNinetyMax} steps), and the growth rates of the divergence agree to within about $\nn{\DivRateRangePercent}\%$ (\rr{4}{\DivRateMin}--\rr{4}{\DivRateMax} per time unit). Small-amplitude noise everywhere, with no localised seed, relaxes to the trivial state $(u,v)=(1,0)$ rather than to the patterned regime, so the patterned regime has a distinct basin that our seeded runs never leave (ESM \S\ref{sec:S_robustness}). All ensembles use a burn-in of $\nn{\BurninOne}$ steps, at least twice the time (on average $\nn{\DivSeparation}$ steps) for two noisy copies of the same field to separate to $90\%$ of the distance between independent draws. A direct check supports this: in $\nn{\CountReal}$ noisy copies run for $\nn{\CountSteps}$ steps, the correlation of the organism count across copies is $\rr{2}{\CountRAtBurnin}\pm\rr{2}{\CountRAtBurninErr}$ at the burn-in and is indistinguishable from zero from about step $\nn{\CountZeroStep}$. The three ensembles, which differ in sample spacing, give the same partial correlation ($r=\rr{3}{\EnsOnePartial}$, $\rr{3}{\EnsTwoPartial}$ and $\rr{3}{\EnsThreePartial}$). The headline results are computed per organism, not from the population count. Instances from the same frame are also not independent. The whole-frame resampling intervals in Table~\ref{tab:ensemble_summary} are wider but still decisively nonzero, and resampling blocks of up to $\nn{\BlockMax}$ consecutive frames changes them little. The nonlinear CMI is also unchanged on subsamples with one organism per frame or organisms at least ten radii apart (ESM \S\ref{sec:S_robustness}).
+
+\section{Free Energy}
+\label{sec:freeenergy}
+
+Having found that the natural partition does not satisfy the blanket condition, we ask whether a well-defined free energy can still be constructed for these organisms and whether it recovers the life-cycle behaviour that motivated the work: rising towards division and falling after. This section is an exploratory control, not a further test of the blanket hypothesis: all three quantities are computed from the same fields that define the organisms. It guards against the inference that a well-behaved variational free energy would itself demonstrate inference.
+
+\subsection{Template-Deviation Free Energy}
+\label{sec:template_fe}
+
+The simplest, purely descriptive proxy compares an organism's radial $v$-profile $v_i$ with an empirical template $T(r)$, the mean profile over $\nn{\TrajN}$ organisms of the single trajectory ($\nn{\TemplateBins}$ bins over $0$--$\nn{\TemplateMaxR}$ pixels; ESM \S\ref{sec:S_template_procedure}):
+\begin{equation}
+\mathcal{F}_{\text{template}} = \frac{1}{n_{\text{bins}}}\sum_{i} \left( v_i - T(r_i) \right)^2 .
+\end{equation}
+It needs no generative model, prior or posterior, only a distance from a typical shape, chosen for direct comparability with the quantity below. The profile has a sensible form: near-maximal at the centre ($v\approx\rr{2}{\TemplateCentre}$), falling to a minimum at about the organism radius plus the gap to the background, and rising as neighbours' peaks enter the average. An organism far from the template is typically small and over-concentrated at its centre, plausibly a recently divided daughter not yet at full size.
+
+\subsection{Friston Free Energy}
+\label{sec:friston_fe}
+
+Variational free energy is a functional of an assumed generative model and an approximate posterior, not a statement about a system's causal structure:
+\begin{equation}
+\mathcal{F} = \mathrm{KL}\big(q(s) \,\|\, p(s)\big) - \mathbb{E}_{q(s)}\big[\log p(o \mid s)\big]. \label{eq:fe_definition}
+\end{equation}
+Here $s$ is the hidden state, $o$ the observation, $p(s)$ the prior over $s$, $q(s)$ the approximate posterior, and $\mathrm{KL}$ the Kullback--Leibler divergence, a measure of how far one distribution is from another. We instantiate it from the data of Section~\ref{sec:conditional_independence} with linear-Gaussian fits: hidden state $s:=E$; observation $o:=(\Phi_u,\Phi_v)$; prior $p(s)$ fit to the marginal of $E$; likelihood $p(o\mid s)=\mathcal{N}(As+b,\Sigma)$ fit by regression; and approximate posterior $q(s\mid I)$ a Gaussian whose mean is a regression of $E$ on the organism's own $I$ (ESM \S\ref{sec:S_surprisal}). Calling $q(s\mid I)$ an ``approximate posterior'' invites three readings, and only the first is intended. (i) It is a mathematical ingredient, a distribution chosen so that $\mathcal{F}$ is well defined and computable. (ii) It is not a posterior given $o$ in the Bayesian sense. Following Friston's synchronisation map, the claim that internal states parameterise beliefs about external states, we make it a function of the internal state $I$, not of the observation $o$. (iii) We make no claim that the dynamics compute it: Eqs.~\ref{eq:gs_u}--\ref{eq:gs_v} contain no reference to $I$, $E$ or $\Phi$. Since $\mathcal{F}$ can be computed identically whether or not the organism performs inference, a well-behaved $\mathcal{F}$ cannot by itself support that reading.
+
+Fit on the ensemble, the KL term is small but positive (mean $\rr{3}{\FeKLMean}$), reflecting marginal dependence, not the conditional-independence violation. Refitting on a random half of the data and evaluating on the held-out half gives $r=\rr{6}{\FeHeldOutR}$. Because all distributions are Gaussian, $\mathcal{F}=-\ln p(o)+\mathrm{KL}\big(q(s\mid I)\,\|\,p(s\mid o)\big)$ exactly, which we confirmed on $\nn{\SurprN}$ life-cycle instances. The KL remainder is small (median $\rr{3}{\SurprGapMedian}$ nats, 95th percentile $\rr{2}{\SurprGapPctNinetyFive}$, against $\mathcal{F}\approx\rr{0}{\SurprMeanF}$ in the arbitrary flux units), so $\mathcal{F}$ is, to a very good approximation, the surprisal of the organism's boundary flux under the population's flux statistics; through the life cycle the two curves correlate at $r=\rr{3}{\SurprRCurve}$ and the remainder rises from about $\rr{2}{\SurprGapEarly}$ nats long before division to about $\rr{2}{\SurprGapPreDivision}$ shortly before it (ESM \S\ref{sec:S_surprisal}). This is a statement about the statistics of the flux, not about the organism being surprised.
+
+\subsection{Chemical Free Energy and the Limits of Its Definition}
+\label{sec:chemical_fe}
+
+We also asked whether a genuine \emph{thermodynamic} free energy or entropy production rate can be defined. It cannot without a further modelling choice, and we do not attempt to supply one. The autocatalytic step is irreversible, so with a small reverse rate $k_r$ the affinity diverges as $-\ln k_r$ and no well-posed entropy production exists at $k_r=0$ (\citealt{Mahara2004}, who reversibilise both reactions, make this choice explicitly). We therefore do not compute an absolute value and follow instead the shape of the reaction-rate prefactor $uv^2$, to which $\sigma/(-\ln k_r)$ converges as $k_r\to0$, as a small-$k_r$ leading-order comparison and not an identity.
+
+\subsection{Comparison of Life-Cycle Trajectories}
+\label{sec:fe_comparison}
+
+Organisms are followed with a lineage tracker. Watershed segmentation is purely geometric and cannot distinguish a division from a spot that transiently deforms into a peanut shape and relaxes, so a one-becomes-two event counts as a division only if the children persist beyond a $\nn{\LifeConfirmWindow}$-time-unit window (ESM \S\ref{sec:S_lineage}). The tracker follows the same fused organisms as the cross-sectional analyses. Median lifespans are $\nn{\LifeMedianDeath}$ (death) and $\nn{\LifeMedianDivision}$ (division) time units, longer than the $\sim660$ reported by \citet{Pearson1993} for an isolated spot, as expected when neighbours compete for substrate. Over $N=\nn{\FeDivisions}$ confirmed divisions, aligned to each division and averaged, $\mathcal{F}_{\text{template}}$ rises from $\approx\rr{4}{\FeTemplateStart}$ to $\approx\rr{4}{\FeTemplatePeak}$ just before division, falls by a factor of $\rr{1}{\FeTemplateDrop}$ at division, and rises again. The Friston $\mathcal{F}$ has a similar shape (Figure~\ref{fig:fe_comparison}). The reaction-rate prefactor $uv^2$ gives a third curve in two forms. As a per-area mean it runs \emph{opposite} to the free energies, falling to a minimum just before division and jumping at division, because a growing organism adds mostly low-activity interior to its mask. As a total over the organism it follows them closely but tracks size. Its close agreement with the Friston $\mathcal{F}$ is expected: $\mathcal{F}$ is built from the boundary flux of $u$, and by conservation of $u$ the inward flux equals the reaction's consumption in the organism less the feed supplied there; the two correlate $r=\rr{2}{\MassR}$ over $\nn{\MassN}$ organism-instances (ESM \S\ref{sec:S_uv2_flux}).
+
+Two checks address artefacts of the agreement (ESM \S\ref{sec:S_fe_comparison}). Rebuilding the template from a separate trajectory preserves it, and the agreement holds at the organism-instance level with no averaging ($r=\rr{3}{\InstR}$, $N=\nn{\InstN}$). Both quantities track organism size ($\rr{2}{\FeSizeRTemplate}$ and $\rr{2}{\FeSizeRFriston}$ with equivalent radius), nonlinearly. Controlling for age leaves the correlation unchanged and a linear size control barely changes it, but a cubic function of equivalent radius lowers it to $\rr{2}{\FeSizeRCubic}$. About $\rr{0}{\FeSizeShare}\%$ of the shared variance is therefore size; the rest is a strong agreement between two functions of the same measured state, which does not by itself show that either is inference.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fe_four_curves_1024.png}
+\caption{Free energies and reaction rate aligned to division and averaged over $N=\nn{\FeDivisions}$ confirmed divisions, each $z$-scored. Template-deviation and Friston free energy track closely ($r=\rr{3}{\UvRTemplateFriston}$). The per-area mean of $uv^2$ runs opposite; the total of $uv^2$ follows them but is set mainly by size.}
+\label{fig:fe_comparison}
+\end{figure}
+
+The curves resume the same rising trend in the daughter generation rather than restarting from an unrelated baseline, consistent with something of the parent's state carrying over; we have not tested whether a parent's value at division predicts its daughter's starting value. Both quantities show the life-cycle pattern the original hypothesis predicted, and they agree despite very different derivations. That is a robust, quantitative life-cycle signature. It is not evidence that these organisms perform approximate Bayesian inference. The dynamics are fully determined by Eqs.~\ref{eq:gs_u}--\ref{eq:gs_v}, and finding a generative model under which $\mathcal{F}$ behaves as it would in an inferential system is not evidence of inference: a fit counts only if it could have failed were the hypothesis false, and a flexible model fit to almost any smooth, roughly Gaussian system will find some consistent parameterisation. What would count is the property the fit does not test, that internal and external states are screened through the blanket and nothing else. Section~\ref{sec:conditional_independence} tested that and found it false for the boundary-defined blankets; a thick band of the field screens, but that is a property of the field (Section~\ref{sec:richer_blanket}).
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Which Parts of the Framework Hold}
+
+The three conditions fare differently. Timescale separation holds by a direct positional measure, though the strict relative comparison is unresolved (Section~\ref{sec:timescale}), and exchange-flux asymmetry holds but is a suggestive analogy, not confirmation of a directed dependency structure (Section~\ref{sec:flux}). The central claim, conditional independence given the blanket, fails across several methods (Section~\ref{sec:conditional_independence}), with measured spatial structure (Section~\ref{sec:corrlength}); neither flux nor boundary concentration gives an effective blanket, and only a band of the surrounding field about one organism radius thick screens (Section~\ref{sec:richer_blanket}).
+
+Thermodynamic and variational free energy share a name but are different mathematical objects, and any connection between them rests on further assumptions. The Friston free energy we computed converges closely with a simple descriptive proxy, so the life-cycle signature is recoverable by more than one route; but both track organism size to a considerable extent (Section~\ref{sec:fe_comparison}), so the agreement is not independent evidence of a deep feature of the chemistry. We could not define an absolute thermodynamic quantity without a further modelling choice (Section~\ref{sec:chemical_fe}); the only comparison made is with the reaction-rate prefactor $uv^2$, a small-$k_r$ leading-order stand-in for entropy production, and its total over the organism is largely a size effect.
+
+\subsection{What Formulation of the Markov Blanket Does This Test?}
+\label{sec:blanket_formulation}
+
+Our central test targets the statistical (Pearl-style) structure \citep{Bruineberg2022,Pearl1988}. It bears on the stronger dynamical claim, that interior and exterior influence each other only through the blanket, only to the extent that this claim requires the statistical structure. The test has limits (ESM \S\ref{sec:S_discussion_scope}):
+\begin{itemize}
+\item $I$ and $E$ are coarse-grained summaries, and the test conditions on flux, not on the thick band that screens.
+\item Flux is closer to a collider than to a mediating state (one through which the exterior influences the interior), as the boundary-concentration comparison suggests.
+\item We test a single instant, whereas a blanket may more naturally concern history.
+\item Our dynamics are deterministic; Friston's construction assumes a stochastic steady-state density.
+\item Watershed boundaries are state dependent and could induce dependence; individuating organisms by a fixed threshold on $v$, with no watershed, also finds the violation (ESM \S\ref{sec:S_levelset}) but does not isolate the mechanism.
+\end{itemize}
+None of these explains the violation away; each limits what it shows.
+
+\subsection{Relation to the Critical Literature}
+\label{sec:critical_lit}
+
+Our results sharpen \citeauthor{Raja2021}'s (\citeyear{Raja2021}) concern that a blanket can be imposed on almost any system after the fact, which makes the claims hard to falsify. Used loosely, for any bounded, persisting structure that exchanges material with its environment, ``Markov blanket'' applies to our organisms trivially, and nothing here challenges that usage. Used strictly, to mean that interior and exterior are conditionally independent given the blanket, it makes a claim that can be tested, and we tested it. It fails for the boundary-defined variables we tested: flux and boundary concentration. We tested and rejected one natural rescue: that the violation is an artefact of the step that separates fused spots (it is equally present among organisms that individuate on their own). Friston's own proposal for biologically special blankets, those of minimum entropy with slowly changing constituents \citep{Friston2013}, is met by our organisms by the positional measure of timescale separation, and they still fail to screen with these variables. A band of the surrounding field about one radius thick does screen the interior from the exterior beyond it. We therefore do not claim that no blanket exists, only that a thin, boundary-defined one does not, and the failure is informative because the thick band is cheap: it is what coupling by diffusion produces, and it does not by itself distinguish an organism from any other region of the field. Placebo disks of matched size, placed in the gaps between organisms, are screened too, by a band of 16 px rather than the organisms' 24 px (Section~\ref{sec:richer_blanket}), so the screening belongs to the field; the organisms' extra 8 px of persistence is the one part of the dependence that is theirs.
+
+Is the violation small enough to count as approximate screening \citep{Sakthivadivel2022}? For the boundary-defined variables, no. Flux removes about $\rr{0}{\TrajScreened}\%$ of the marginal linear dependence, but the nonlinear check shows it \emph{increases} the apparent dependence, and boundary concentration screens only about a fifth of the nonlinear dependence. The conditional coupling has reproducible spatial structure and persists across every individuation method, resolution and estimator tried. For a thick band of the field, yes: below $0.01$ nats. This is compatible with \citeauthor{Aguilera2022}'s (\citeyear{Aguilera2022}) finding that a sparse, thin partition is not generically a blanket, and also with the reply that blankets of finite thickness are to be expected in locally coupled systems. The weight of the inferential reading then rests on the remaining conditions of Section~\ref{sec:fep_intro}: whether synchronisation holds, and whether anything in the dynamics computes about the exterior. The variational free energy remains a valid bound on surprisal whether or not screening is exact. Exact screening matters because it lets that bound be read as encoding beliefs about the exterior (ESM \S\ref{sec:S_discussion_scope}). We do not attribute even approximate inference to this system on the strength of any blanket variable tested.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+Our ergodicity evidence is incomplete, and the ensemble realisations are not fully independent for the population count (Section~\ref{sec:robustness}). The Friston free energy rests on a linear-Gaussian approximation. The chemical free energy was left at the shape level. The results concern the flux, boundary-concentration, near-field-shell and band blanket variables tested and one parameter regime of one model. We did not test whether a parent's state at division predicts its daughter's, so the descriptive continuity across generations is not evidence of heritable internal states. Whether a richer generative model would change the qualitative free-energy results we cannot say, though we would guess not.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We tested, in a concrete nonlinear pattern-forming system, a central mathematical claim of the free energy principle: that persisting, self-replicating structures possess Markov blankets that render their internal and external states conditionally independent. For Gray--Scott spots, the claim fails for the flux-based blanket we test, under linear and nonlinear estimators, in single-trajectory and ensemble sampling, and under a second individuation method, although timescale separation (by a direct positional measure) and exchange-flux asymmetry (as a suggestive analogy) hold up with qualification. Part of the violation reflects the conditioning variable itself: flux is a joint downstream effect of both sides of the boundary, and conditioning on it raises the dependence, as expected of a collider. Conditioning on the boundary's own concentration does only partial work. No boundary-defined variable tested here, flux included, gives an effective blanket. A band of the surrounding field about one organism radius thick does screen the interior from the exterior beyond it, to under $0.01$ nats; that is what short-range coupling produces in any local field, not evidence of inference. A variational free energy from an explicit generative model can be computed for these organisms and gives a life-cycle signature that agrees closely with a simple descriptive proxy, partly through a shared dependence on organism size; this reflects well-behaved chemical dynamics, not Bayesian inference. A chemically motivated memory extension, which might have been expected to support better individuation, does not remove the violation. Self-replicating reaction-diffusion spots are simple enough to simulate exhaustively and to individuate operationally, which makes them a direct testbed for questions about the scope of the free energy principle that are otherwise addressed through toy linear systems or untested assertions about real biology.
+
+\section*{Ethics}
+
+Not applicable.
+
+\section*{Data Accessibility}
+
+Code for the solvers, the individuation and lineage-tracking pipeline, the conditional mutual information estimator, and the scripts for every figure and table is available at \url{https://github.com/johnepearson/GS_FEP}, together with the settled starting field from which every simulation is run and a README giving the command for each result.
+
+\section*{Authors' Contributions}
+
+J.E.P. conceived the study, designed and interpreted all analyses, and wrote the paper.
+
+\section*{Competing Interests}
+
+The author declares no competing interests.
+
+\section*{Funding}
+
+This work received no external funding.
+
+\section*{Acknowledgements}
+
+Claude (Anthropic) was used extensively for developing and debugging code, running the numerical analyses, and drafting and revising text. All results were reviewed, verified, and are the responsibility of the author. AI-generated reviews from Anthropic, OpenAI, and Google Gemini were employed repeatedly. We are especially grateful to Mac Hyman, who submitted two drafts of the manuscript to a group of five OpenAI reviewers he developed. Andy Fraser pointed out that the coarse-graining into $I$ and $E$ is justified by the data processing inequality (ESM \S\ref{sec:S_coarse}).
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
