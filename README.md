@@ -8,7 +8,7 @@ estimator, and the scripts for every figure and table in the paper and its Elect
 with a reproducible environment and automated tests. The scientific content is the same; the commands and the folder
 layout are different.
 
-## Try it (about 40 minutes the first time)
+## Try it (about 10 to 15 minutes in all, almost all of it step 3)
 
 1. Install Miniforge (a small conda) and create the environment. Step-by-step instructions are in `setup/README.md`.
 
@@ -18,11 +18,11 @@ layout are different.
        conda activate gsfep
        bash setup/check_setup.sh        # every line should say OK
 
-2. Run the tests (about 25 seconds; they do not run a simulation):
+2. Run the tests (under a minute; they do not run a simulation):
 
        make test
 
-3. Run the scaled-down pipeline end to end (about 10 minutes on a 12-core Mac):
+3. Run the scaled-down pipeline end to end (about 10 minutes on a 12-core Mac plugged in, up to 15 on battery):
 
        make QUICK=1
 
@@ -36,6 +36,25 @@ Set `GS_FFT_THREADS=1` when running several worker processes in parallel.
 
 A regenerated figure can differ in detail from the published one (a different frame, a different random subsample);
 compare the printed numbers with the text.
+
+## The full run and the paper
+
+The first 30 lines of `Makefile` list every option. The main ones:
+
+    make -n FULL=1        show what would run, and run nothing
+    make FULL=1           the full-size run: every simulation and analysis at the size used for the paper,
+                          writing build/results.tex (many hours; make uses all cores, see JOBS in the Makefile)
+    make FULL=1 pdfs      the same, then build build/paper.pdf and build/supplement.pdf
+    make QUICK=1 pdfs     the scaled-down chain plus PDFs in build_quick/ (the numbers in them are not the paper's)
+    make times            how long each stage took, longest first
+    make check            compare the printed output with the validated output in tests/golden/ (full run only)
+
+Without `FULL=1`, make stops before it would start a full-size simulation, so a full run is never started by accident.
+A stage reruns only when its script, a library it imports, a data file it reads, or a parameter it uses has changed,
+so an interrupted run can be restarted and finished stages are not repeated.
+
+Building the PDFs needs `pdflatex` and `bibtex` (TeX Live or MacTeX). They are not part of the conda environment;
+`setup/check_setup.sh` reports whether they are found.
 
 ## Conventions
 
