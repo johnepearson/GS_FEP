@@ -10,7 +10,7 @@ layout are different.
 
 ## Try it (about 10 to 15 minutes in all, almost all of it step 3)
 
-1. Install Miniforge (a small conda; skip this if you already have conda or mamba) and create the environment. Step-by-step instructions are in `setup/README.md`.
+1. Get the code and create the environment. First, if you do not already have conda or mamba, install Miniforge (a small conda; see "Once per computer" in `setup/README.md`). Then type these commands one at a time in a terminal. The first one creates the folder `GS_FEP`; the rest run inside it:
 
        git clone -b restructure https://github.com/johnepearson/GS_FEP.git
        cd GS_FEP

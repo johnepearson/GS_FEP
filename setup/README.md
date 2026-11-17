@@ -11,11 +11,19 @@ These steps work on macOS and Linux (on Windows, use WSL and follow the Linux st
    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
    bash Miniforge3-$(uname)-$(uname -m).sh
    ```
+   The installer asks you to press ENTER, then to type `yes` to accept the license, then to press ENTER to accept the install location (and to answer `yes` if it asks whether to initialize conda). The download is a file named `Miniforge3-...sh`; you can delete it afterwards.
 3. Only if you want the PDFs: install LaTeX (macOS: MacTeX or BasicTeX; Linux: `sudo apt install texlive-latex-recommended`). `make` itself does not need it.
 
 ## Once per copy of the project
 
-From the project folder (the one that contains the Makefile):
+Get the code. This creates a folder named `GS_FEP` and goes into it:
+
+```
+git clone -b restructure https://github.com/johnepearson/GS_FEP.git
+cd GS_FEP
+```
+
+Then, from inside that folder (the one that contains the `Makefile`):
 
 ```
 conda env create -f setup/environment.yml
