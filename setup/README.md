@@ -6,7 +6,7 @@ These steps work on macOS and Linux (on Windows, use WSL and follow the Linux st
 
 1. Install a C compiler.
    macOS: `xcode-select --install`   Linux: `sudo apt install build-essential`
-2. Install Miniforge (a small conda that uses the conda-forge channel), then close the terminal and open a new one:
+2. Install Miniforge (a small conda that uses the conda-forge channel), then close the terminal and open a new one. If you already have conda or mamba (`conda --version` prints a version), skip this step; if the installer says the directory already exists, you already have it, so do not delete it and go on to the next section:
    ```
    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
    bash Miniforge3-$(uname)-$(uname -m).sh
