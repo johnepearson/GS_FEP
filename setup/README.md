@@ -27,8 +27,10 @@ The last line should end with `No failures`.
 
 ## Every new terminal
 
+`GS_FEP` is the folder that `git clone` created, the one that contains the `Makefile`. If you cloned it somewhere else or gave it another name, `cd` to that folder instead (`ls` should show `Makefile`).
+
 ```
-cd <the project folder>
+cd GS_FEP
 conda activate gsfep
 ```
 
