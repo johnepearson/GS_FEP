@@ -8,7 +8,7 @@ estimator, and the scripts for every figure and table in the paper and its Elect
 with a reproducible environment and automated tests. The scientific content is the same; the commands and the folder
 layout are different.
 
-## Try it (about 10 to 15 minutes in all, almost all of it step 3)
+## Try it (2 to 3 minutes of hands-on time, plus about 10 minutes of run time in step 3)
 
 1. Get the code and create the environment. First, if you do not already have conda or mamba, install Miniforge (a small conda; see "Once per computer" in `setup/README.md`). Then type these commands one at a time in a terminal. The first one creates the folder `GS_FEP`; the rest run inside it:
 
