@@ -42,7 +42,22 @@ cd GS_FEP
 conda activate gsfep
 ```
 
-The prompt then starts with `(gsfep)`. Then `make test` runs the unit tests (a few seconds) and `make` builds the results.
+The prompt then starts with `(gsfep)`.
+
+## Check that everything works
+
+From the project folder, with `gsfep` active:
+
+```
+make test
+make QUICK=1
+```
+
+`make test` runs the unit tests (about 30 seconds; it does not run a simulation). `make QUICK=1` runs the whole pipeline at a tiny size (about 10 minutes on a 12-core Mac). Its numbers are not the paper's numbers; it only checks that everything runs. The full-size run is `make FULL=1` (about 30 hours); see the top-level README.
+
+## When you are done
+
+`conda deactivate` leaves the environment; the `(gsfep)` disappears from the prompt. Closing the terminal does the same.
 
 ## If something goes wrong
 

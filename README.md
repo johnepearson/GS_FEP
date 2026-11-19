@@ -30,6 +30,8 @@ layout are different.
    it prints are not the paper's numbers** (a few frames instead of hundreds, for example). Results and logs go to
    `build_quick/`, which is not kept in git; `make clean-quick` removes it.
 
+   When you are done, `conda deactivate` leaves the environment.
+
 The full-size run takes much longer and is what produced the paper's numbers. The Makefile builds the C solver
 (`src/simulation/libgs_spectral.so`) automatically, using the FFTW library that the conda environment provides.
 Set `GS_FFT_THREADS=1` when running several worker processes in parallel.
